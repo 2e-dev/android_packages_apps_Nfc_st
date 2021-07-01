@@ -16,19 +16,15 @@
 
 package com.android.nfc.ndefpush;
 
-import android.util.Log;
-
-import android.nfc.NdefMessage;
 import android.nfc.FormatException;
-
+import android.nfc.NdefMessage;
+import android.util.Log;
 import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
-/**
- * Implementation of the NDEF Push Protocol.
- */
+/** Implementation of the NDEF Push Protocol. */
 public class NdefPushProtocol {
     public static final byte ACTION_IMMEDIATE = (byte) 0x01;
     public static final byte ACTION_BACKGROUND = (byte) 0x02;
@@ -76,7 +72,7 @@ public class NdefPushProtocol {
             throw new FormatException("Unable to read version");
         }
 
-        if(version != VERSION) {
+        if (version != VERSION) {
             Log.w(TAG, "Got version " + version + ",  expected " + VERSION);
             throw new FormatException("Got version " + version + ",  expected " + VERSION);
         }
@@ -84,11 +80,11 @@ public class NdefPushProtocol {
         // Read numMessages
         try {
             mNumMessages = input.readInt();
-        } catch(java.io.IOException e) {
+        } catch (java.io.IOException e) {
             Log.w(TAG, "Unable to read numMessages");
             throw new FormatException("Error while parsing NdefMessageSet");
         }
-        if(mNumMessages == 0) {
+        if (mNumMessages == 0) {
             Log.w(TAG, "No NdefMessage inside NdefMessageSet packet");
             throw new FormatException("Error while parsing NdefMessageSet");
         }
@@ -96,11 +92,11 @@ public class NdefPushProtocol {
         // Read actions and messages
         mActions = new byte[mNumMessages];
         mMessages = new NdefMessage[mNumMessages];
-        for(int i = 0; i < mNumMessages; i++) {
+        for (int i = 0; i < mNumMessages; i++) {
             // Read action
             try {
                 mActions[i] = input.readByte();
-            } catch(java.io.IOException e) {
+            } catch (java.io.IOException e) {
                 Log.w(TAG, "Unable to read action for message " + i);
                 throw new FormatException("Error while parsing NdefMessageSet");
             }
@@ -108,7 +104,7 @@ public class NdefPushProtocol {
             int length;
             try {
                 length = input.readInt();
-            } catch(java.io.IOException e) {
+            } catch (java.io.IOException e) {
                 Log.w(TAG, "Unable to read length for message " + i);
                 throw new FormatException("Error while parsing NdefMessageSet");
             }
@@ -117,19 +113,18 @@ public class NdefPushProtocol {
             int lengthRead;
             try {
                 lengthRead = input.read(bytes);
-            } catch(java.io.IOException e) {
+            } catch (java.io.IOException e) {
                 Log.w(TAG, "Unable to read bytes for message " + i);
                 throw new FormatException("Error while parsing NdefMessageSet");
             }
-            if(length != lengthRead) {
-                Log.w(TAG, "Read " + lengthRead + " bytes but expected " +
-                    length);
+            if (length != lengthRead) {
+                Log.w(TAG, "Read " + lengthRead + " bytes but expected " + length);
                 throw new FormatException("Error while parsing NdefMessageSet");
             }
             // Create and store NdefMessage
             try {
                 mMessages[i] = new NdefMessage(bytes);
-            } catch(FormatException e) {
+            } catch (FormatException e) {
                 throw e;
             }
         }
@@ -137,8 +132,8 @@ public class NdefPushProtocol {
 
     public NdefMessage getImmediate() {
         // Find and return the first immediate message
-        for(int i = 0; i < mNumMessages; i++) {
-            if(mActions[i] == ACTION_IMMEDIATE) {
+        for (int i = 0; i < mNumMessages; i++) {
+            if (mActions[i] == ACTION_IMMEDIATE) {
                 return mMessages[i];
             }
         }
@@ -152,13 +147,13 @@ public class NdefPushProtocol {
         try {
             output.writeByte(VERSION);
             output.writeInt(mNumMessages);
-            for(int i = 0; i < mNumMessages; i++) {
+            for (int i = 0; i < mNumMessages; i++) {
                 output.writeByte(mActions[i]);
                 byte[] bytes = mMessages[i].toByteArray();
                 output.writeInt(bytes.length);
                 output.write(bytes);
             }
-        } catch(java.io.IOException e) {
+        } catch (java.io.IOException e) {
             return null;
         }
 

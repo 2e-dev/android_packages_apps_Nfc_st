@@ -22,14 +22,13 @@ import android.content.Context;
 import android.nfc.cardemulation.NfcFServiceInfo;
 import android.util.Log;
 import android.util.proto.ProtoOutputStream;
-
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 public class RegisteredT3tIdentifiersCache {
     static final String TAG = "RegisteredT3tIdentifiersCache";
@@ -93,8 +92,7 @@ public class RegisteredT3tIdentifiersCache {
             if (DBG) Log.d(TAG, "resolveNfcid2: resolving NFCID " + nfcid2);
             NfcFServiceInfo resolveInfo;
             resolveInfo = mForegroundT3tIdentifiersCache.get(nfcid2);
-            Log.d(TAG,
-                    "Resolved to: " + (resolveInfo == null ? "null" : resolveInfo.toString()));
+            Log.d(TAG, "Resolved to: " + (resolveInfo == null ? "null" : resolveInfo.toString()));
             return resolveInfo;
         }
     }
@@ -105,8 +103,8 @@ public class RegisteredT3tIdentifiersCache {
         if (mEnabledForegroundService != null) {
             for (NfcFServiceInfo service : mServices) {
                 if (mEnabledForegroundService.equals(service.getComponent())) {
-                    if (!service.getSystemCode().equalsIgnoreCase("NULL") &&
-                            !service.getNfcid2().equalsIgnoreCase("NULL")) {
+                    if (!service.getSystemCode().equalsIgnoreCase("NULL")
+                            && !service.getNfcid2().equalsIgnoreCase("NULL")) {
                         mForegroundT3tIdentifiersCache.put(service.getNfcid2(), service);
                     }
                     break;
@@ -115,12 +113,15 @@ public class RegisteredT3tIdentifiersCache {
         }
 
         if (DBG) {
-            Log.d(TAG, "mForegroundT3tIdentifiersCache: size=" +
-                    mForegroundT3tIdentifiersCache.size());
+            Log.d(
+                    TAG,
+                    "mForegroundT3tIdentifiersCache: size="
+                            + mForegroundT3tIdentifiersCache.size());
             for (Map.Entry<String, NfcFServiceInfo> entry :
                     mForegroundT3tIdentifiersCache.entrySet()) {
-                Log.d(TAG, "    " + entry.getKey() +
-                        "/" + entry.getValue().getComponent().toString());
+                Log.d(
+                        TAG,
+                        "    " + entry.getKey() + "/" + entry.getValue().getComponent().toString());
             }
         }
 
@@ -146,16 +147,19 @@ public class RegisteredT3tIdentifiersCache {
         while (it.hasNext()) {
             Map.Entry<String, NfcFServiceInfo> entry =
                     (Map.Entry<String, NfcFServiceInfo>) it.next();
-            t3tIdentifiers.add(new T3tIdentifier(
-                    entry.getValue().getSystemCode(), entry.getValue().getNfcid2(), entry.getValue().getT3tPmm()));
+            t3tIdentifiers.add(
+                    new T3tIdentifier(
+                            entry.getValue().getSystemCode(),
+                            entry.getValue().getNfcid2(),
+                            entry.getValue().getT3tPmm()));
         }
         mRoutingManager.configureRouting(t3tIdentifiers);
     }
 
     public void onSecureNfcToggled() {
-        synchronized(mLock) {
+        synchronized (mLock) {
             updateRoutingLocked(true);
-      }
+        }
     }
 
     public void onServicesUpdated(int userId, List<NfcFServiceInfo> services) {
@@ -226,16 +230,15 @@ public class RegisteredT3tIdentifiersCache {
     /**
      * Dump debugging information as a RegisteredT3tIdentifiersCacheProto
      *
-     * Note:
-     * See proto definition in frameworks/base/core/proto/android/nfc/card_emulation.proto
+     * <p>Note: See proto definition in frameworks/base/core/proto/android/nfc/card_emulation.proto
      * When writing a nested message, must call {@link ProtoOutputStream#start(long)} before and
-     * {@link ProtoOutputStream#end(long)} after.
-     * Never reuse a proto field number. When removing a field, mark it as reserved.
+     * {@link ProtoOutputStream#end(long)} after. Never reuse a proto field number. When removing a
+     * field, mark it as reserved.
      */
     void dumpDebug(ProtoOutputStream proto) {
         for (NfcFServiceInfo serviceInfo : mForegroundT3tIdentifiersCache.values()) {
-            long token = proto.start(
-                    RegisteredT3tIdentifiersCacheProto.T3T_IDENTIFIER_CACHE_ENTRIES);
+            long token =
+                    proto.start(RegisteredT3tIdentifiersCacheProto.T3T_IDENTIFIER_CACHE_ENTRIES);
             serviceInfo.dumpDebug(proto);
             proto.end(token);
         }

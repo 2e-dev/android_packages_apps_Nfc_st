@@ -1,30 +1,31 @@
-cc_library_shared {
-    name: "libnfc_nci_jni",
+// START system version
+cc_library_static {
+    name: "libnfc_jni",
 
     cflags: [
         "-Wall",
         "-Wextra",
         "-Wno-unused-parameter",
         "-Werror",
-
         "-DNXP_UICC_ENABLE",
     ],
 
-    srcs: ["**/*.cpp"],
+    srcs: [
+        "CondVar.cpp",
+        "DataQueue.cpp",
+        "IntervalTimer.cpp",
+        "NativeLlcpConnectionlessSocket.cpp",
+        "NativeLlcpServiceSocket.cpp",
+        "NativeLlcpSocket.cpp",
+        "NativeP2pDevice.cpp",
+        "PeerToPeer.cpp",
+        "RouteDataSet.cpp",
+        "PowerSwitch.cpp"
+		],
 
-    include_dirs: [
-        "system/nfc/src/nfa/include",
-        "system/nfc/src/nfc/include",
-        "system/nfc/src/include",
-        "system/nfc/src/gki/ulinux",
-        "system/nfc/src/gki/common",
-        "system/nfc/utils/include",
-    ],
-
-    local_include_dirs: [
-        "extns/pn54x/inc",
-        "extns/pn54x/src/common",
-        "extns/pn54x/src/mifare",
+    export_include_dirs :
+    [
+      ".",
     ],
 
     shared_libs: [
@@ -33,12 +34,17 @@ cc_library_shared {
         "libcutils",
         "libutils",
         "liblog",
-        "libnfc-nci",
+        "libstnfc-nci",
         "libchrome",
         "libbase",
     ],
 
     static_libs: ["libxml2"],
+
+    export_static_lib_headers:
+    [
+      "libxml2",
+    ],
 
     product_variables: {
         debuggable: {
@@ -50,3 +56,56 @@ cc_library_shared {
         misc_undefined: ["bounds"],
     },
 }
+
+cc_library_static {
+      name: "nfc_jni_files_for_factory",
+      static_libs : [
+          "libstnfc-nci",
+          "libstnfcutils",
+          "libxml2",
+      ],
+      shared_libs : [
+        "libnativehelper",
+        "libandroidicu",
+        "libcutils",
+        "libutils",
+        "liblog",
+        "libchrome",
+        "libbase",
+      ],
+
+      export_include_dirs :
+      [
+        ".",
+      ],
+
+      header_libs : [
+        "jni_headers",
+        "libhardware_headers",
+      ],
+
+      cflags :
+      [
+        "-Wall",
+        "-Werror",
+        "-Wextra",
+        "-Wno-unused-parameter",
+        "-fvisibility=hidden",
+      ],
+
+      srcs :
+      [
+        "CondVar.cpp",
+        "DataQueue.cpp",
+        "IntervalTimer.cpp",
+        "Mutex.cpp",
+        "NativeLlcpConnectionlessSocket.cpp",
+        "NativeLlcpServiceSocket.cpp",
+        "NativeLlcpSocket.cpp",
+        "NativeP2pDevice.cpp",
+        "PeerToPeer.cpp",
+        "RouteDataSet.cpp",
+      ],
+
+}
+// END system version

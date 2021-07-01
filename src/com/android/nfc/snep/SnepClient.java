@@ -16,19 +16,17 @@
 
 package com.android.nfc.snep;
 
+import android.nfc.NdefMessage;
+import android.util.Log;
 import com.android.nfc.DeviceHost.LlcpSocket;
 import com.android.nfc.LlcpException;
 import com.android.nfc.NfcService;
-
-import android.nfc.NdefMessage;
-import android.util.Log;
-
 import java.io.IOException;
 
 public final class SnepClient {
     private static final String TAG = "SnepClient";
     private static final boolean DBG = false;
-    private static final int DEFAULT_ACCEPTABLE_LENGTH = 100*1024;
+    private static final int DEFAULT_ACCEPTABLE_LENGTH = 100 * 1024;
     private static final int DEFAULT_MIU = 128;
     private static final int DEFAULT_RWSIZE = 1;
     SnepMessenger mMessenger = null;
@@ -36,7 +34,7 @@ public final class SnepClient {
 
     private final String mServiceName;
     private final int mPort;
-    private int  mState = DISCONNECTED;
+    private int mState = DISCONNECTED;
     private final int mAcceptableLength;
     private final int mFragmentLength;
     private final int mMiu;
@@ -154,7 +152,7 @@ public final class SnepClient {
                 socket.connectToSap(mPort);
             }
             int miu = socket.getRemoteMiu();
-            int fragmentLength = (mFragmentLength == -1) ?  miu : Math.min(miu, mFragmentLength);
+            int fragmentLength = (mFragmentLength == -1) ? miu : Math.min(miu, mFragmentLength);
             messenger = new SnepMessenger(true, socket, fragmentLength);
         } catch (LlcpException e) {
             synchronized (this) {
@@ -183,14 +181,14 @@ public final class SnepClient {
     public void close() {
         synchronized (this) {
             if (mMessenger != null) {
-               try {
-                   mMessenger.close();
-               } catch (IOException e) {
-                   // ignore
-               } finally {
-                   mMessenger = null;
-                   mState = DISCONNECTED;
-               }
+                try {
+                    mMessenger.close();
+                } catch (IOException e) {
+                    // ignore
+                } finally {
+                    mMessenger = null;
+                    mState = DISCONNECTED;
+                }
             }
         }
     }

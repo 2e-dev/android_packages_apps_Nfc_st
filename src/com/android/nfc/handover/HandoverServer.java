@@ -15,22 +15,15 @@
  */
 package com.android.nfc.handover;
 
+import android.content.Context;
+import android.nfc.FormatException;
+import android.nfc.NdefMessage;
+import android.util.Log;
 import com.android.nfc.DeviceHost.LlcpServerSocket;
 import com.android.nfc.DeviceHost.LlcpSocket;
 import com.android.nfc.LlcpException;
 import com.android.nfc.NfcService;
 import com.android.nfc.beam.BeamManager;
-import com.android.nfc.beam.BeamReceiveService;
-import com.android.nfc.beam.BeamTransferRecord;
-
-import android.bluetooth.BluetoothDevice;
-import android.content.Context;
-import android.content.Intent;
-import android.nfc.FormatException;
-import android.nfc.NdefMessage;
-import android.os.UserHandle;
-import android.util.Log;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -52,6 +45,7 @@ public final class HandoverServer {
 
     public interface Callback {
         void onHandoverRequestReceived();
+
         void onHandoverBusy();
     }
 
@@ -92,8 +86,10 @@ public final class HandoverServer {
             while (threadRunning) {
                 try {
                     synchronized (HandoverServer.this) {
-                        mServerSocket = NfcService.getInstance().createLlcpServerSocket(mSap,
-                                HANDOVER_SERVICE_NAME, MIU, 1, 1024);
+                        mServerSocket =
+                                NfcService.getInstance()
+                                        .createLlcpServerSocket(
+                                                mSap, HANDOVER_SERVICE_NAME, MIU, 1, 1024);
                     }
                     if (mServerSocket == null) {
                         if (DBG) Log.d(TAG, "failed to create LLCP service socket");
@@ -209,8 +205,8 @@ public final class HandoverServer {
                         }
 
                         // 2) convert to handover response
-                        HandoverDataParser.IncomingHandoverData handoverData
-                                = mHandoverDataParser.getIncomingHandoverData(handoverRequestMsg);
+                        HandoverDataParser.IncomingHandoverData handoverData =
+                                mHandoverDataParser.getIncomingHandoverData(handoverRequestMsg);
                         if (handoverData == null) {
                             Log.e(TAG, "Failed to create handover response");
                             break;
@@ -222,7 +218,7 @@ public final class HandoverServer {
                         int remoteMiu = mSock.getRemoteMiu();
                         while (offset < buffer.length) {
                             int length = Math.min(buffer.length - offset, remoteMiu);
-                            byte[] tmpBuffer = Arrays.copyOfRange(buffer, offset, offset+length);
+                            byte[] tmpBuffer = Arrays.copyOfRange(buffer, offset, offset + length);
                             mSock.send(tmpBuffer);
                             offset += length;
                         }
@@ -260,4 +256,3 @@ public final class HandoverServer {
         }
     }
 }
-

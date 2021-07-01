@@ -16,14 +16,12 @@
 
 package com.android.nfc.snep;
 
+import android.nfc.FormatException;
+import android.util.Log;
 import com.android.nfc.DeviceHost.LlcpSocket;
 import com.android.nfc.NfcService;
 import com.android.nfc.sneptest.DtaSnepClient;
 import com.android.nfc.sneptest.ExtDtaSnepServer;
-
-import android.nfc.FormatException;
-import android.util.Log;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -77,11 +75,10 @@ public class SnepMessenger {
 
         if (DBG) Log.d(TAG, "Got response from first fragment: " + snepResponse.getField());
         if (snepResponse.getField() != remoteContinue) {
-            throw new IOException("Invalid response from server (" +
-                    snepResponse.getField() + ")");
+            throw new IOException("Invalid response from server (" + snepResponse.getField() + ")");
         }
         // Look for wrong/invalid request or response from peer
-       if (NfcService.sIsDtaMode) {
+        if (NfcService.sIsDtaMode) {
             if (mIsClient && (DtaSnepClient.mTestCaseId == 6)) {
                 length = Math.min(buffer.length - offset, mFragmentLength);
                 tmpBuffer = Arrays.copyOfRange(buffer, offset, offset + length);
@@ -96,7 +93,8 @@ public class SnepMessenger {
                 } catch (FormatException e) {
                     throw new IOException("Invalid SNEP message", e);
                 }
-                if (DBG) Log.d(TAG, "Got response from second fragment: " + snepResponse.getField());
+                if (DBG)
+                    Log.d(TAG, "Got response from second fragment: " + snepResponse.getField());
                 if (snepResponse.getField() == remoteContinue) {
                     close();
                     return;
@@ -119,7 +117,11 @@ public class SnepMessenger {
                     } catch (FormatException e) {
                         throw new IOException("Invalid SNEP message", e);
                     }
-                    if (DBG) Log.d(TAG, "Got continue response after second fragment: and now disconnecting..." + snepResponse.getField());
+                    if (DBG)
+                        Log.d(
+                                TAG,
+                                "Got continue response after second fragment: and now disconnecting..."
+                                        + snepResponse.getField());
                     if (snepResponse.getField() == remoteContinue) {
                         close();
                         return;
@@ -166,7 +168,6 @@ public class SnepMessenger {
                     close();
                 } else {
                     mSocket.send(SnepMessage.getMessage(fieldReject).toByteArray());
-
                 }
                 mSocket.send(SnepMessage.getMessage(fieldReject).toByteArray());
             } catch (IOException e) {
@@ -190,21 +191,21 @@ public class SnepMessenger {
                 sendMessage(SnepMessage.getMessage(SnepMessage.RESPONSE_UNSUPPORTED_VERSION));
                 close();
             } else {
-            if (NfcService.sIsDtaMode) {
-                sendMessage(SnepMessage.getMessage(SnepMessage.RESPONSE_UNSUPPORTED_VERSION));
-                close();
-            } else {
-                // Invalid protocol version; treat message as complete.
-                return new SnepMessage(requestVersion, requestField, 0, 0, null);
+                if (NfcService.sIsDtaMode) {
+                    sendMessage(SnepMessage.getMessage(SnepMessage.RESPONSE_UNSUPPORTED_VERSION));
+                    close();
+                } else {
+                    // Invalid protocol version; treat message as complete.
+                    return new SnepMessage(requestVersion, requestField, 0, 0, null);
+                }
             }
-            }
-
         }
 
         if (NfcService.sIsDtaMode) {
-            if (!mIsClient && (requestField == SnepMessage.RESPONSE_CONTINUE)||  // added for TC_S_BIT_B1_01_X
-                              requestField == SnepMessage.RESPONSE_SUCCESS ||
-                              requestField == SnepMessage.RESPONSE_NOT_FOUND) {
+            if (!mIsClient && (requestField == SnepMessage.RESPONSE_CONTINUE)
+                    || // added for TC_S_BIT_B1_01_X
+                    requestField == SnepMessage.RESPONSE_SUCCESS
+                    || requestField == SnepMessage.RESPONSE_NOT_FOUND) {
                 if (DBG) Log.d(TAG, "errorneous response received, disconnecting client");
                 close();
             }
@@ -216,18 +217,18 @@ public class SnepMessenger {
             // added for TC_C_BIT_BI_01_0
             if (mIsClient && requestField == SnepMessage.REQUEST_PUT) {
                 if (DBG) Log.d(TAG, "errorneous PUT request received, disconnecting from server");
-                    close();
+                close();
             }
             // added for TC_C_GET_BV_03
             if (mIsClient && (requestSize > SnepMessage.MAL_IUT)) {
                 if (DBG) Log.d(TAG, "responding reject");
-                    return new SnepMessage(requestVersion, requestField, requestSize, 0, null);
+                return new SnepMessage(requestVersion, requestField, requestSize, 0, null);
             }
-            //added for TC_S_ACC_BV_05_0&1 and TC_S_ACC_BV_06_0&1
-            if (!mIsClient && ((requestSize > SnepMessage.MAL_IUT) ||
-                                requestSize == SnepMessage.MAL)) {
+            // added for TC_S_ACC_BV_05_0&1 and TC_S_ACC_BV_06_0&1
+            if (!mIsClient
+                    && ((requestSize > SnepMessage.MAL_IUT) || requestSize == SnepMessage.MAL)) {
                 if (DBG) Log.d(TAG, "responding reject");
-                    return new SnepMessage(requestVersion, requestField, requestSize, 0, null);
+                return new SnepMessage(requestVersion, requestField, requestSize, 0, null);
             }
         }
 

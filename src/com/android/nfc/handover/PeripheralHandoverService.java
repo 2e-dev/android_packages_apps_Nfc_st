@@ -31,14 +31,14 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
-import android.os.Parcelable;
 import android.os.ParcelUuid;
+import android.os.Parcelable;
 import android.os.RemoteException;
 import android.util.Log;
-
 import java.util.Set;
 
-public class PeripheralHandoverService extends Service implements BluetoothPeripheralHandover.Callback {
+public class PeripheralHandoverService extends Service
+        implements BluetoothPeripheralHandover.Callback {
     static final String TAG = "PeripheralHandoverService";
     static final boolean DBG = true;
 
@@ -88,15 +88,16 @@ public class PeripheralHandoverService extends Service implements BluetoothPerip
         }
     }
 
-    final BroadcastReceiver mBluetoothStatusReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-                handleBluetoothStateChanged(intent);
-            }
-        }
-    };
+    final BroadcastReceiver mBluetoothStatusReceiver =
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    String action = intent.getAction();
+                    if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                        handleBluetoothStateChanged(intent);
+                    }
+                }
+            };
 
     public PeripheralHandoverService() {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -169,15 +170,16 @@ public class PeripheralHandoverService extends Service implements BluetoothPerip
         if (parcelables != null) {
             uuids = new ParcelUuid[parcelables.length];
             for (int i = 0; i < parcelables.length; i++) {
-                uuids[i] = (ParcelUuid)parcelables[i];
+                uuids[i] = (ParcelUuid) parcelables[i];
             }
         }
 
         mClient = msgData.getParcelable(EXTRA_CLIENT);
         mBluetoothEnabledByNfc = msgData.getBoolean(EXTRA_BT_ENABLED);
 
-        mBluetoothPeripheralHandover = new BluetoothPeripheralHandover(
-                this, mDevice, name, transport, oobData, uuids, btClass, this);
+        mBluetoothPeripheralHandover =
+                new BluetoothPeripheralHandover(
+                        this, mDevice, name, transport, oobData, uuids, btClass, this);
 
         if (transport == BluetoothDevice.TRANSPORT_LE) {
             mHandler.sendMessageDelayed(
@@ -201,12 +203,11 @@ public class PeripheralHandoverService extends Service implements BluetoothPerip
     }
 
     private void handleBluetoothStateChanged(Intent intent) {
-        int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
-                BluetoothAdapter.ERROR);
+        int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
         if (state == BluetoothAdapter.STATE_ON) {
             // If there is a pending device pairing, start it
-            if (mBluetoothPeripheralHandover != null &&
-                    !mBluetoothPeripheralHandover.hasStarted()) {
+            if (mBluetoothPeripheralHandover != null
+                    && !mBluetoothPeripheralHandover.hasStarted()) {
                 if (!mBluetoothPeripheralHandover.start()) {
                     mNfcAdapter.resumePolling();
                 }
@@ -243,7 +244,6 @@ public class PeripheralHandoverService extends Service implements BluetoothPerip
             mStartId = 0;
         }
     }
-
 
     boolean enableBluetooth() {
         if (!mBluetoothAdapter.isEnabled()) {

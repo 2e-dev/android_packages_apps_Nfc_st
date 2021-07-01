@@ -1,19 +1,15 @@
 package com.android.nfc.beam;
 
-import com.android.nfc.R;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.util.Log;
-
+import com.android.nfc.R;
 import java.io.File;
 
-/**
- * @hide
- */
+/** @hide */
 public class BeamStatusReceiver extends BroadcastReceiver {
     private static final boolean DBG = true;
     private static final String TAG = "BeamStatusReceiver";
@@ -29,7 +25,6 @@ public class BeamStatusReceiver extends BroadcastReceiver {
 
     private static final String EXTRA_HANDOVER_DATA_LINK_TYPE =
             "android.nfc.handover.intent.extra.HANDOVER_DATA_LINK_TYPE";
-
 
     private static final String EXTRA_TRANSFER_PROGRESS =
             "android.nfc.handover.intent.extra.TRANSFER_PROGRESS";
@@ -54,18 +49,14 @@ public class BeamStatusReceiver extends BroadcastReceiver {
     private static final int HANDOVER_TRANSFER_STATUS_FAILURE = 1;
 
     // permission needed to be able to receive handover status requests
-    public static final String BEAM_STATUS_PERMISSION =
-            "android.permission.NFC_HANDOVER_STATUS";
+    public static final String BEAM_STATUS_PERMISSION = "android.permission.NFC_HANDOVER_STATUS";
 
     // Needed to build cancel intent in Beam notification
-    public static final String EXTRA_INCOMING =
-            "com.android.nfc.handover.extra.INCOMING";
+    public static final String EXTRA_INCOMING = "com.android.nfc.handover.extra.INCOMING";
 
-    public static final String EXTRA_TRANSFER_ID =
-            "android.nfc.handover.intent.extra.TRANSFER_ID";
+    public static final String EXTRA_TRANSFER_ID = "android.nfc.handover.intent.extra.TRANSFER_ID";
 
-    public static final String EXTRA_ADDRESS =
-            "android.nfc.handover.intent.extra.ADDRESS";
+    public static final String EXTRA_ADDRESS = "android.nfc.handover.intent.extra.ADDRESS";
 
     public static final String ACTION_CANCEL_HANDOVER_TRANSFER =
             "com.android.nfc.handover.action.CANCEL_HANDOVER_TRANSFER";
@@ -84,16 +75,18 @@ public class BeamStatusReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        int dataLinkType = intent.getIntExtra(EXTRA_HANDOVER_DATA_LINK_TYPE,
-                BeamTransferManager.DATA_LINK_TYPE_BLUETOOTH);
+        int dataLinkType =
+                intent.getIntExtra(
+                        EXTRA_HANDOVER_DATA_LINK_TYPE,
+                        BeamTransferManager.DATA_LINK_TYPE_BLUETOOTH);
 
         if (ACTION_CANCEL_HANDOVER_TRANSFER.equals(action)) {
             if (mTransferManager != null) {
                 mTransferManager.cancel();
             }
-        } else if (ACTION_TRANSFER_PROGRESS.equals(action) ||
-                ACTION_TRANSFER_DONE.equals(action) ||
-                ACTION_HANDOVER_STARTED.equals(action)) {
+        } else if (ACTION_TRANSFER_PROGRESS.equals(action)
+                || ACTION_TRANSFER_DONE.equals(action)
+                || ACTION_HANDOVER_STARTED.equals(action)) {
             handleTransferEvent(intent, dataLinkType);
         }
     }
@@ -132,8 +125,8 @@ public class BeamStatusReceiver extends BroadcastReceiver {
         mTransferManager.setBluetoothTransferId(id);
 
         if (action.equals(ACTION_TRANSFER_DONE)) {
-            int handoverStatus = intent.getIntExtra(EXTRA_TRANSFER_STATUS,
-                    HANDOVER_TRANSFER_STATUS_FAILURE);
+            int handoverStatus =
+                    intent.getIntExtra(EXTRA_TRANSFER_STATUS, HANDOVER_TRANSFER_STATUS_FAILURE);
             if (handoverStatus == HANDOVER_TRANSFER_STATUS_SUCCESS) {
                 String uriString = intent.getStringExtra(EXTRA_TRANSFER_URI);
                 String mimeType = intent.getStringExtra(EXTRA_TRANSFER_MIMETYPE);

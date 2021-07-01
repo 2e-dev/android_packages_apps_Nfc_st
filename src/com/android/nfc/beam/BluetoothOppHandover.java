@@ -16,8 +16,6 @@
 
 package com.android.nfc.beam;
 
-import com.android.nfc.R;
-
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
@@ -26,7 +24,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
-
+import com.android.nfc.R;
 import java.util.ArrayList;
 
 public class BluetoothOppHandover implements Handler.Callback {
@@ -42,8 +40,7 @@ public class BluetoothOppHandover implements Handler.Callback {
 
     static final int REMOTE_BT_ENABLE_DELAY_MS = 5000;
 
-    static final String ACTION_HANDOVER_SEND =
-            "android.nfc.handover.intent.action.HANDOVER_SEND";
+    static final String ACTION_HANDOVER_SEND = "android.nfc.handover.intent.action.HANDOVER_SEND";
 
     static final String ACTION_HANDOVER_SEND_MULTIPLE =
             "android.nfc.handover.intent.action.HANDOVER_SEND_MULTIPLE";
@@ -58,7 +55,10 @@ public class BluetoothOppHandover implements Handler.Callback {
 
     int mState;
 
-    public BluetoothOppHandover(Context context, BluetoothDevice device, ArrayList<Uri> uris,
+    public BluetoothOppHandover(
+            Context context,
+            BluetoothDevice device,
+            ArrayList<Uri> uris,
             boolean remoteActivating) {
         mContext = context;
         mDevice = device;
@@ -71,15 +71,15 @@ public class BluetoothOppHandover implements Handler.Callback {
     }
 
     /**
-     * Main entry point. This method is usually called after construction,
-     * to begin the BT sequence. Must be called on Main thread.
+     * Main entry point. This method is usually called after construction, to begin the BT sequence.
+     * Must be called on Main thread.
      */
     public void start() {
         if (mRemoteActivating) {
             Long timeElapsed = SystemClock.elapsedRealtime() - mCreateTime;
             if (timeElapsed < REMOTE_BT_ENABLE_DELAY_MS) {
-                mHandler.sendEmptyMessageDelayed(MSG_START_SEND,
-                        REMOTE_BT_ENABLE_DELAY_MS - timeElapsed);
+                mHandler.sendEmptyMessageDelayed(
+                        MSG_START_SEND, REMOTE_BT_ENABLE_DELAY_MS - timeElapsed);
             } else {
                 // Already waited long enough for BT to come up
                 // - start send.
@@ -106,7 +106,9 @@ public class BluetoothOppHandover implements Handler.Callback {
             // to the Bluetooth process. This works, but we don't have
             // a good framework API for revoking permission yet.
             try {
-                mContext.grantUriPermission(mContext.getString(R.string.bluetooth_package), uri,
+                mContext.grantUriPermission(
+                        mContext.getString(R.string.bluetooth_package),
+                        uri,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION);
             } catch (SecurityException e) {
                 Log.e(TAG, "Failed to transfer permission to Bluetooth process.");
@@ -125,7 +127,6 @@ public class BluetoothOppHandover implements Handler.Callback {
 
         complete();
     }
-
 
     @Override
     public boolean handleMessage(Message msg) {

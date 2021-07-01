@@ -15,20 +15,18 @@
  */
 package com.android.nfc.sneptest;
 
-import java.io.IOException;
-
 import android.content.Context;
 import android.nfc.NdefMessage;
 import android.util.Log;
-
-import com.android.nfc.DtaServiceConnector;
 import com.android.nfc.DeviceHost.LlcpServerSocket;
 import com.android.nfc.DeviceHost.LlcpSocket;
+import com.android.nfc.DtaServiceConnector;
 import com.android.nfc.LlcpException;
 import com.android.nfc.NfcService;
 import com.android.nfc.snep.SnepException;
 import com.android.nfc.snep.SnepMessage;
 import com.android.nfc.snep.SnepMessenger;
+import java.io.IOException;
 
 public final class ExtDtaSnepServer {
     private static final String TAG = "ExtDtaSnepServer";
@@ -48,17 +46,25 @@ public final class ExtDtaSnepServer {
 
     /** Protected by 'this', null when stopped, non-null when running */
     ServerThread mServerThread = null;
+
     boolean mServerRunning = false;
     static DtaServiceConnector dtaServiceConnector;
 
     public interface Callback {
         public SnepMessage doPut(NdefMessage msg);
+
         public SnepMessage doGet(int acceptableLength, NdefMessage msg);
     }
 
     // for NFC Forum SNEP DTA
-    public ExtDtaSnepServer(String serviceName, int serviceSap, int miu, int rwSize,
-                            Callback callback,Context mContext,int testCaseId) {
+    public ExtDtaSnepServer(
+            String serviceName,
+            int serviceSap,
+            int miu,
+            int rwSize,
+            Callback callback,
+            Context mContext,
+            int testCaseId) {
         mExtDtaSnepServerCallback = callback;
         mDtaServiceName = serviceName;
         mDtaServiceSap = serviceSap;
@@ -66,7 +72,7 @@ public final class ExtDtaSnepServer {
         mDtaMiu = miu;
         mDtaRwSize = rwSize;
         mTestCaseId = testCaseId;
-        dtaServiceConnector=new DtaServiceConnector(mContext);
+        dtaServiceConnector = new DtaServiceConnector(mContext);
         dtaServiceConnector.bindService();
     }
 
@@ -91,8 +97,7 @@ public final class ExtDtaSnepServer {
                 }
 
                 while (running) {
-                    if (!handleRequest(mMessager, mExtDtaSnepServerCallback))
-                        break;
+                    if (!handleRequest(mMessager, mExtDtaSnepServerCallback)) break;
 
                     synchronized (ExtDtaSnepServer.this) {
                         running = mServerRunning;
@@ -104,7 +109,8 @@ public final class ExtDtaSnepServer {
                 try {
                     if (DBG) Log.d(TAG, "about to close");
                     mSock.close();
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                }
             }
             if (DBG) Log.d(TAG, "finished connection thread");
         }
@@ -117,21 +123,22 @@ public final class ExtDtaSnepServer {
         } catch (SnepException e) {
             if (DBG) Log.w(TAG, "Bad snep message", e);
             try {
-                messenger.sendMessage(SnepMessage.getMessage(
-                    SnepMessage.RESPONSE_BAD_REQUEST));
-            } catch (IOException e2) {}
+                messenger.sendMessage(SnepMessage.getMessage(SnepMessage.RESPONSE_BAD_REQUEST));
+            } catch (IOException e2) {
+            }
             return false;
         }
 
         if (((request.getVersion() & 0xF0) >> 4) != SnepMessage.VERSION_MAJOR) {
-            messenger.sendMessage(SnepMessage.getMessage(
-                    SnepMessage.RESPONSE_UNSUPPORTED_VERSION));
-        } else if ((request.getLength() > SnepMessage.MAL_IUT) || request.getLength() == SnepMessage.MAL) {
+            messenger.sendMessage(SnepMessage.getMessage(SnepMessage.RESPONSE_UNSUPPORTED_VERSION));
+        } else if ((request.getLength() > SnepMessage.MAL_IUT)
+                || request.getLength() == SnepMessage.MAL) {
             if (DBG) Log.d(TAG, "Bad requested length");
             messenger.sendMessage(SnepMessage.getMessage(SnepMessage.RESPONSE_REJECT));
         } else if (request.getField() == SnepMessage.REQUEST_GET) {
             if (DBG) Log.d(TAG, "getting message " + request.toString());
-            messenger.sendMessage(callback.doGet(request.getAcceptableLength(), request.getNdefMessage()));
+            messenger.sendMessage(
+                    callback.doGet(request.getAcceptableLength(), request.getNdefMessage()));
             if (request.getNdefMessage() != null)
                 dtaServiceConnector.sendMessage(request.getNdefMessage().toString());
         } else if (request.getField() == SnepMessage.REQUEST_PUT) {
@@ -140,7 +147,7 @@ public final class ExtDtaSnepServer {
             if (request.getNdefMessage() != null)
                 dtaServiceConnector.sendMessage(request.getNdefMessage().toString());
         } else {
-            if (DBG) Log.d(TAG, "Unknown request (" + request.getField() +")");
+            if (DBG) Log.d(TAG, "Unknown request (" + request.getField() + ")");
             messenger.sendMessage(SnepMessage.getMessage(SnepMessage.RESPONSE_BAD_REQUEST));
         }
         return true;
@@ -162,8 +169,14 @@ public final class ExtDtaSnepServer {
                 if (DBG) Log.d(TAG, "about create LLCP service socket");
                 try {
                     synchronized (ExtDtaSnepServer.this) {
-                        mServerSocket = NfcService.getInstance().createLlcpServerSocket(mDtaServiceSap,
-                                mDtaServiceName, mDtaMiu, mDtaRwSize, 1024);
+                        mServerSocket =
+                                NfcService.getInstance()
+                                        .createLlcpServerSocket(
+                                                mDtaServiceSap,
+                                                mDtaServiceName,
+                                                mDtaMiu,
+                                                mDtaRwSize,
+                                                1024);
                     }
                     if (mServerSocket == null) {
                         if (DBG) Log.d(TAG, "failed to create LLCP service socket");
@@ -189,7 +202,10 @@ public final class ExtDtaSnepServer {
                         if (DBG) Log.d(TAG, "accept returned " + communicationSocket);
                         if (communicationSocket != null) {
                             int miu = communicationSocket.getRemoteMiu();
-                            int fragmentLength = (mDtaFragmentLength == -1) ? miu : Math.min(miu, mDtaFragmentLength);
+                            int fragmentLength =
+                                    (mDtaFragmentLength == -1)
+                                            ? miu
+                                            : Math.min(miu, mDtaFragmentLength);
                             new ConnectionThread(communicationSocket, fragmentLength).start();
                         }
 
@@ -208,7 +224,8 @@ public final class ExtDtaSnepServer {
                             if (DBG) Log.d(TAG, "about to close");
                             try {
                                 mServerSocket.close();
-                            } catch (IOException e) {}
+                            } catch (IOException e) {
+                            }
                             mServerSocket = null;
                         }
                     }
@@ -226,7 +243,8 @@ public final class ExtDtaSnepServer {
                 if (mServerSocket != null) {
                     try {
                         mServerSocket.close();
-                    } catch (IOException e) {}
+                    } catch (IOException e) {
+                    }
                     mServerSocket = null;
                 }
             }

@@ -16,16 +16,14 @@
 
 package com.android.nfc;
 
-import java.util.ArrayList;
-
+import android.Manifest.permission;
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.ActivityManagerNative;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.ClipData;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -35,28 +33,23 @@ import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
-import android.os.UserHandle;
 import android.os.RemoteException;
-import android.util.Log;
+import android.os.UserHandle;
 import android.util.EventLog;
+import android.util.Log;
 import android.webkit.URLUtil;
-import android.Manifest.permission;
 import android.widget.Toast;
-
 import com.android.internal.R;
+import java.util.ArrayList;
 
 /**
- * This class is registered by NfcService to handle
- * ACTION_SHARE intents. It tries to parse data contained
- * in ACTION_SHARE intents in either a content/file Uri,
- * which can be sent using NFC handover, or alternatively
- * it tries to parse texts and URLs to store them in a simple
- * Text or Uri NdefRecord. The data is then passed on into
- * NfcService to transmit on NFC tap.
- *
+ * This class is registered by NfcService to handle ACTION_SHARE intents. It tries to parse data
+ * contained in ACTION_SHARE intents in either a content/file Uri, which can be sent using NFC
+ * handover, or alternatively it tries to parse texts and URLs to store them in a simple Text or Uri
+ * NdefRecord. The data is then passed on into NfcService to transmit on NFC tap.
  */
 public class BeamShareActivity extends Activity {
-    static final String TAG ="BeamShareActivity";
+    static final String TAG = "BeamShareActivity";
     static final boolean DBG = false;
 
     ArrayList<Uri> mUris;
@@ -97,16 +90,18 @@ public class BeamShareActivity extends Activity {
         IntentFilter filter = new IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED);
         registerReceiverAsUser(mReceiver, UserHandle.ALL, filter, null, null);
 
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this,
-                com.android.nfc.R.style.DialogAlertDayNight);
+        AlertDialog.Builder dialogBuilder =
+                new AlertDialog.Builder(this, com.android.nfc.R.style.DialogAlertDayNight);
         dialogBuilder.setMessage(msgId);
-        dialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialogInterface) {
-                finish();
-            }
-        });
-        dialogBuilder.setPositiveButton(R.string.yes,
+        dialogBuilder.setOnCancelListener(
+                new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialogInterface) {
+                        finish();
+                    }
+                });
+        dialogBuilder.setPositiveButton(
+                R.string.yes,
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
@@ -118,7 +113,8 @@ public class BeamShareActivity extends Activity {
                         }
                     }
                 });
-        dialogBuilder.setNegativeButton(R.string.no,
+        dialogBuilder.setNegativeButton(
+                R.string.no,
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
@@ -129,8 +125,8 @@ public class BeamShareActivity extends Activity {
     }
 
     void tryUri(Uri uri) {
-        if (uri.getScheme().equalsIgnoreCase("content") ||
-                uri.getScheme().equalsIgnoreCase("file")) {
+        if (uri.getScheme().equalsIgnoreCase("content")
+                || uri.getScheme().equalsIgnoreCase("file")) {
             // Typically larger data, this can be shared using NFC handover
             mUris.add(uri);
         } else {
@@ -149,9 +145,11 @@ public class BeamShareActivity extends Activity {
     }
 
     public void parseShareIntentAndFinish(Intent intent) {
-        if (intent == null || intent.getAction() == null ||
-                (!intent.getAction().equalsIgnoreCase(Intent.ACTION_SEND) &&
-                !intent.getAction().equalsIgnoreCase(Intent.ACTION_SEND_MULTIPLE))) return;
+        if (intent == null
+                || intent.getAction() == null
+                || (!intent.getAction().equalsIgnoreCase(Intent.ACTION_SEND)
+                        && !intent.getAction().equalsIgnoreCase(Intent.ACTION_SEND_MULTIPLE)))
+            return;
 
         // First, see if the intent contains clip-data, and if so get data from there
         ClipData clipData = intent.getClipData();
@@ -160,21 +158,23 @@ public class BeamShareActivity extends Activity {
                 ClipData.Item item = clipData.getItemAt(i);
                 // First try to get an Uri
                 Uri uri = item.getUri();
-                String plainText = null;
-                try {
-                    plainText = item.coerceToText(this).toString();
-                } catch (IllegalStateException e) {
-                    if (DBG) Log.d(TAG, e.getMessage());
-                    continue;
-                }
                 if (uri != null) {
                     if (DBG) Log.d(TAG, "Found uri in ClipData.");
                     tryUri(uri);
-                } else if (plainText != null) {
-                    if (DBG) Log.d(TAG, "Found text in ClipData.");
-                    tryText(plainText);
                 } else {
-                    if (DBG) Log.d(TAG, "Did not find any shareable data in ClipData.");
+                    String plainText = null;
+                    try {
+                        plainText = item.coerceToText(this).toString();
+                    } catch (Exception e) {
+                        if (DBG) Log.d(TAG, e.getMessage());
+                        continue;
+                    }
+                    if (plainText != null) {
+                        if (DBG) Log.d(TAG, "Found text in ClipData.");
+                        tryText(plainText);
+                    } else {
+                        if (DBG) Log.d(TAG, "Did not find any shareable data in ClipData.");
+                    }
                 }
             }
         } else {
@@ -192,8 +192,8 @@ public class BeamShareActivity extends Activity {
                 }
             } else {
                 final ArrayList<Uri> uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-                final ArrayList<CharSequence> texts = intent.getCharSequenceArrayListExtra(
-                        Intent.EXTRA_TEXT);
+                final ArrayList<CharSequence> texts =
+                        intent.getCharSequenceArrayListExtra(Intent.EXTRA_TEXT);
 
                 if (uris != null && uris.size() > 0) {
                     for (Uri uri : uris) {
@@ -205,8 +205,11 @@ public class BeamShareActivity extends Activity {
                     if (DBG) Log.d(TAG, "Found text in ACTION_SEND_MULTIPLE intent.");
                     tryText(texts.get(0).toString());
                 } else {
-                    if (DBG) Log.d(TAG, "Did not find any shareable data in " +
-                            "ACTION_SEND_MULTIPLE intent.");
+                    if (DBG)
+                        Log.d(
+                                TAG,
+                                "Did not find any shareable data in "
+                                        + "ACTION_SEND_MULTIPLE intent.");
                 }
             }
         }
@@ -219,18 +222,29 @@ public class BeamShareActivity extends Activity {
             int numValidUris = 0;
             for (Uri uri : mUris) {
                 try {
-                    int uid = ActivityManagerNative.getDefault().getLaunchedFromUid(getActivityToken());
-                    if (uri.getScheme().equalsIgnoreCase("file") &&
-                            getApplicationContext().checkPermission(permission.READ_EXTERNAL_STORAGE, -1, uid) !=
-                            PackageManager.PERMISSION_GRANTED) {
-                        Toast.makeText(getApplicationContext(),
-                                        com.android.nfc.R.string.beam_requires_external_storage_permission,
-                                        Toast.LENGTH_SHORT).show();
+                    int uid =
+                            ActivityManagerNative.getDefault()
+                                    .getLaunchedFromUid(getActivityToken());
+                    if (uri.getScheme().equalsIgnoreCase("file")
+                            && getApplicationContext()
+                                            .checkPermission(
+                                                    permission.READ_EXTERNAL_STORAGE, -1, uid)
+                                    != PackageManager.PERMISSION_GRANTED) {
+                        Toast.makeText(
+                                        getApplicationContext(),
+                                        com.android
+                                                .nfc
+                                                .R
+                                                .string
+                                                .beam_requires_external_storage_permission,
+                                        Toast.LENGTH_SHORT)
+                                .show();
                         Log.e(TAG, "File based Uri doesn't have External Storage Permission.");
                         EventLog.writeEvent(0x534e4554, "37287958", uid, uri.getPath());
                         break;
                     }
-                    grantUriPermission("com.android.nfc", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    grantUriPermission(
+                            "com.android.nfc", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     uriArray[numValidUris++] = uri;
                     if (DBG) Log.d(TAG, "Found uri: " + uri);
                 } catch (SecurityException e) {
@@ -259,17 +273,19 @@ public class BeamShareActivity extends Activity {
         finish();
     }
 
-    final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (NfcAdapter.ACTION_ADAPTER_STATE_CHANGED.equals(intent.getAction())) {
-                int state = intent.getIntExtra(NfcAdapter.EXTRA_ADAPTER_STATE,
-                        NfcAdapter.STATE_OFF);
-                if (state == NfcAdapter.STATE_ON) {
-                    parseShareIntentAndFinish(mLaunchIntent);
+    final BroadcastReceiver mReceiver =
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    String action = intent.getAction();
+                    if (NfcAdapter.ACTION_ADAPTER_STATE_CHANGED.equals(intent.getAction())) {
+                        int state =
+                                intent.getIntExtra(
+                                        NfcAdapter.EXTRA_ADAPTER_STATE, NfcAdapter.STATE_OFF);
+                        if (state == NfcAdapter.STATE_ON) {
+                            parseShareIntentAndFinish(mLaunchIntent);
+                        }
+                    }
                 }
-            }
-        }
-    };
+            };
 }

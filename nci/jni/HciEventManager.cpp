@@ -151,6 +151,10 @@ void HciEventManager::nfaHciCallback(tNFA_HCI_EVT event,
     LOG(ERROR) << "Incorrect Pipe Id";
     return;
   }
+  //
+  //  DLOG_IF(INFO, nfc_debug_enabled) << StringPrintf(
+  //          "%s: EVT_TRANSACTION rx; pipe = 0x%02X, Host HCI ID = 0x%02X, Host
+  //          NFCEE ID = 0x%02X", fn, pipeId, hostId, nfceeId);
 
   uint8_t* buff = eventData->rcvd_evt.p_evt_buf;
   uint32_t buffLength = eventData->rcvd_evt.evt_len;

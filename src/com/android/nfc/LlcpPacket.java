@@ -16,31 +16,22 @@
 
 package com.android.nfc;
 
-/**
- * Represents a LLCP packet received in a LLCP Connectionless communication;
- */
+/** Represents a LLCP packet received in a LLCP Connectionless communication; */
 public class LlcpPacket {
 
     private int mRemoteSap;
 
     private byte[] mDataBuffer;
 
-    public LlcpPacket() {
+    public LlcpPacket() {}
 
-    }
-
-    /**
-     * Returns the remote Service Access Point number
-     */
+    /** Returns the remote Service Access Point number */
     public int getRemoteSap() {
         return mRemoteSap;
     }
 
-    /**
-     * Returns the data buffer
-     */
+    /** Returns the data buffer */
     public byte[] getDataBuffer() {
         return mDataBuffer;
     }
-
 }

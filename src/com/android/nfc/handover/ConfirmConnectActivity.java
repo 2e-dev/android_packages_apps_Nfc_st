@@ -26,52 +26,58 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.os.Bundle;
-
 import com.android.nfc.R;
 
 public class ConfirmConnectActivity extends Activity {
     BluetoothDevice mDevice;
     AlertDialog mAlert = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        AlertDialog.Builder builder = new AlertDialog.Builder(this,
-                R.style.DialogAlertDayNight);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DialogAlertDayNight);
         Intent launchIntent = getIntent();
         mDevice = launchIntent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
         if (mDevice == null) finish();
         Resources res = getResources();
-        String confirmString = String.format(res.getString(R.string.confirm_pairing),
-                launchIntent.getStringExtra(BluetoothDevice.EXTRA_NAME));
+        String confirmString =
+                String.format(
+                        res.getString(R.string.confirm_pairing),
+                        launchIntent.getStringExtra(BluetoothDevice.EXTRA_NAME));
         builder.setMessage(confirmString)
-               .setCancelable(false)
-               .setPositiveButton(res.getString(R.string.pair_yes),
-                       new DialogInterface.OnClickListener() {
-                   public void onClick(DialogInterface dialog, int id) {
-                        Intent allowIntent = new Intent(BluetoothPeripheralHandover.ACTION_ALLOW_CONNECT);
-                        allowIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
-                        allowIntent.setPackage("com.android.nfc");
-                        sendBroadcast(allowIntent);
-                        ConfirmConnectActivity.this.mAlert = null;
-                        ConfirmConnectActivity.this.finish();
-                   }
-               })
-               .setNegativeButton(res.getString(R.string.pair_no),
-                       new DialogInterface.OnClickListener() {
-                   public void onClick(DialogInterface dialog, int id) {
-                       Intent denyIntent = new Intent(BluetoothPeripheralHandover.ACTION_DENY_CONNECT);
-                       denyIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
-                       denyIntent.setPackage("com.android.nfc");
-                       sendBroadcast(denyIntent);
-                       ConfirmConnectActivity.this.mAlert = null;
-                       ConfirmConnectActivity.this.finish();
-                   }
-               });
+                .setCancelable(false)
+                .setPositiveButton(
+                        res.getString(R.string.pair_yes),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent allowIntent =
+                                        new Intent(
+                                                BluetoothPeripheralHandover.ACTION_ALLOW_CONNECT);
+                                allowIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
+                                allowIntent.setPackage("com.android.nfc");
+                                sendBroadcast(allowIntent);
+                                ConfirmConnectActivity.this.mAlert = null;
+                                ConfirmConnectActivity.this.finish();
+                            }
+                        })
+                .setNegativeButton(
+                        res.getString(R.string.pair_no),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent denyIntent =
+                                        new Intent(BluetoothPeripheralHandover.ACTION_DENY_CONNECT);
+                                denyIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
+                                denyIntent.setPackage("com.android.nfc");
+                                sendBroadcast(denyIntent);
+                                ConfirmConnectActivity.this.mAlert = null;
+                                ConfirmConnectActivity.this.finish();
+                            }
+                        });
         mAlert = builder.create();
         mAlert.show();
 
-        registerReceiver(mReceiver,
-                new IntentFilter(BluetoothPeripheralHandover.ACTION_TIMEOUT_CONNECT));
+        registerReceiver(
+                mReceiver, new IntentFilter(BluetoothPeripheralHandover.ACTION_TIMEOUT_CONNECT));
     }
 
     @Override
@@ -88,12 +94,14 @@ public class ConfirmConnectActivity extends Activity {
         super.onDestroy();
     }
 
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (BluetoothPeripheralHandover.ACTION_TIMEOUT_CONNECT.equals(intent.getAction())) {
-                finish();
-            }
-        }
-    };
+    private final BroadcastReceiver mReceiver =
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (BluetoothPeripheralHandover.ACTION_TIMEOUT_CONNECT.equals(
+                            intent.getAction())) {
+                        finish();
+                    }
+                }
+            };
 }

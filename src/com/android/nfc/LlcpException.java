@@ -18,14 +18,10 @@ package com.android.nfc;
 
 import android.nfc.ErrorCodes;
 
-/**
- * Generic exception thrown in case something unexpected happened during an
- * LLCP communication.
- */
+/** Generic exception thrown in case something unexpected happened during an LLCP communication. */
 public class LlcpException extends Exception {
     /**
-     * Constructs a new LlcpException with the current stack trace and the
-     * specified detail message.
+     * Constructs a new LlcpException with the current stack trace and the specified detail message.
      *
      * @param s the detail message for this exception.
      */

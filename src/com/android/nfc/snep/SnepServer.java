@@ -16,15 +16,13 @@
 
 package com.android.nfc.snep;
 
+import android.nfc.NdefMessage;
+import android.nfc.NfcAdapter;
+import android.util.Log;
 import com.android.nfc.DeviceHost.LlcpServerSocket;
 import com.android.nfc.DeviceHost.LlcpSocket;
 import com.android.nfc.LlcpException;
 import com.android.nfc.NfcService;
-
-import android.nfc.NdefMessage;
-import android.nfc.NfcAdapter;
-import android.util.Log;
-
 import java.io.IOException;
 
 /**
@@ -50,10 +48,12 @@ public final class SnepServer {
 
     /** Protected by 'this', null when stopped, non-null when running */
     ServerThread mServerThread = null;
+
     boolean mServerRunning = false;
 
     public interface Callback {
         public SnepMessage doPut(NdefMessage msg);
+
         public SnepMessage doGet(int acceptableLength, NdefMessage msg);
     }
 
@@ -144,8 +144,7 @@ public final class SnepServer {
         } catch (SnepException e) {
             if (DBG) Log.w(TAG, "Bad snep message", e);
             try {
-                messenger.sendMessage(SnepMessage.getMessage(
-                    SnepMessage.RESPONSE_BAD_REQUEST));
+                messenger.sendMessage(SnepMessage.getMessage(SnepMessage.RESPONSE_BAD_REQUEST));
             } catch (IOException e2) {
                 // Ignore
             }
@@ -153,22 +152,21 @@ public final class SnepServer {
         }
 
         if (((request.getVersion() & 0xF0) >> 4) != SnepMessage.VERSION_MAJOR) {
-            messenger.sendMessage(SnepMessage.getMessage(
-                    SnepMessage.RESPONSE_UNSUPPORTED_VERSION));
-        } else if (NfcService.sIsDtaMode && ((request.getLength() > SnepMessage.MAL_IUT) ||
-                                              request.getLength() == SnepMessage.MAL)) {
+            messenger.sendMessage(SnepMessage.getMessage(SnepMessage.RESPONSE_UNSUPPORTED_VERSION));
+        } else if (NfcService.sIsDtaMode
+                && ((request.getLength() > SnepMessage.MAL_IUT)
+                        || request.getLength() == SnepMessage.MAL)) {
             if (DBG) Log.d(TAG, "Bad requested length");
             messenger.sendMessage(SnepMessage.getMessage(SnepMessage.RESPONSE_REJECT));
         } else if (request.getField() == SnepMessage.REQUEST_GET) {
-            messenger.sendMessage(callback.doGet(request.getAcceptableLength(),
-                    request.getNdefMessage()));
+            messenger.sendMessage(
+                    callback.doGet(request.getAcceptableLength(), request.getNdefMessage()));
         } else if (request.getField() == SnepMessage.REQUEST_PUT) {
             if (DBG) Log.d(TAG, "putting message " + request.toString());
             messenger.sendMessage(callback.doPut(request.getNdefMessage()));
         } else {
-            if (DBG) Log.d(TAG, "Unknown request (" + request.getField() +")");
-            messenger.sendMessage(SnepMessage.getMessage(
-                    SnepMessage.RESPONSE_BAD_REQUEST));
+            if (DBG) Log.d(TAG, "Unknown request (" + request.getField() + ")");
+            messenger.sendMessage(SnepMessage.getMessage(SnepMessage.RESPONSE_BAD_REQUEST));
         }
         return true;
     }
@@ -189,8 +187,10 @@ public final class SnepServer {
                 if (DBG) Log.d(TAG, "about create LLCP service socket");
                 try {
                     synchronized (SnepServer.this) {
-                        mServerSocket = NfcService.getInstance().createLlcpServerSocket(mServiceSap,
-                                mServiceName, mMiu, mRwSize, 1024);
+                        mServerSocket =
+                                NfcService.getInstance()
+                                        .createLlcpServerSocket(
+                                                mServiceSap, mServiceName, mMiu, mRwSize, 1024);
                     }
                     if (mServerSocket == null) {
                         if (DBG) Log.d(TAG, "failed to create LLCP service socket");
@@ -215,8 +215,14 @@ public final class SnepServer {
                         LlcpSocket communicationSocket = serverSocket.accept();
                         if (DBG) Log.d(TAG, "accept returned " + communicationSocket);
                         if (communicationSocket != null) {
-                            int fragmentLength = (mFragmentLength == -1) ?
-                                    mMiu : Math.min(mMiu, mFragmentLength);
+                            int fragmentLength =
+                                    (mFragmentLength == -1)
+                                            ? mMiu
+                                            : Math.min(mMiu, mFragmentLength);
+
+                            int remoteMiu = communicationSocket.getRemoteMiu();
+                            fragmentLength = Math.min(remoteMiu, fragmentLength);
+
                             new ConnectionThread(communicationSocket, fragmentLength).start();
                         }
 

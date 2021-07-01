@@ -16,9 +16,6 @@
 
 package com.android.nfc;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -26,21 +23,20 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.os.UserHandle;
 import android.util.Log;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
-/**
- * A cache of intent filters registered to receive the TECH_DISCOVERED dispatch.
- */
+/** A cache of intent filters registered to receive the TECH_DISCOVERED dispatch. */
 public class RegisteredComponentCache {
     private static final String TAG = "RegisteredComponentCache";
     private static final boolean DEBUG = false;
@@ -60,12 +56,13 @@ public class RegisteredComponentCache {
 
         generateComponentsList();
 
-        final BroadcastReceiver receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context1, Intent intent) {
-                generateComponentsList();
-            }
-        };
+        final BroadcastReceiver receiver =
+                new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context1, Intent intent) {
+                        generateComponentsList();
+                    }
+                };
         mReceiver = new AtomicReference<BroadcastReceiver>(receiver);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
@@ -108,7 +105,7 @@ public class RegisteredComponentCache {
 
     /**
      * @return a collection of {@link RegisteredComponentCache.ComponentInfo} objects for all
-     * registered authenticators.
+     *     registered authenticators.
      */
     public ArrayList<ComponentInfo> getComponents() {
         synchronized (this) {
@@ -118,9 +115,7 @@ public class RegisteredComponentCache {
         }
     }
 
-    /**
-     * Stops the monitoring of package additions, removals and changes.
-     */
+    /** Stops the monitoring of package additions, removals and changes. */
     public void close() {
         final BroadcastReceiver receiver = mReceiver.getAndSet(null);
         if (receiver != null) {
@@ -147,15 +142,17 @@ public class RegisteredComponentCache {
         PackageManager pm;
         try {
             UserHandle currentUser = new UserHandle(ActivityManager.getCurrentUser());
-            pm = mContext.createPackageContextAsUser("android", 0,
-                    currentUser).getPackageManager();
+            pm = mContext.createPackageContextAsUser("android", 0, currentUser).getPackageManager();
         } catch (NameNotFoundException e) {
             Log.e(TAG, "Could not create user package context");
             return;
         }
         ArrayList<ComponentInfo> components = new ArrayList<ComponentInfo>();
-        List<ResolveInfo> resolveInfos = pm.queryIntentActivitiesAsUser(new Intent(mAction),
-                PackageManager.GET_META_DATA, ActivityManager.getCurrentUser());
+        List<ResolveInfo> resolveInfos =
+                pm.queryIntentActivitiesAsUser(
+                        new Intent(mAction),
+                        PackageManager.GET_META_DATA,
+                        ActivityManager.getCurrentUser());
         for (ResolveInfo resolveInfo : resolveInfos) {
             try {
                 parseComponentInfo(pm, resolveInfo, components);
@@ -175,8 +172,9 @@ public class RegisteredComponentCache {
         }
     }
 
-    void parseComponentInfo(PackageManager pm, ResolveInfo info,
-            ArrayList<ComponentInfo> components) throws XmlPullParserException, IOException {
+    void parseComponentInfo(
+            PackageManager pm, ResolveInfo info, ArrayList<ComponentInfo> components)
+            throws XmlPullParserException, IOException {
         ActivityInfo ai = info.activityInfo;
 
         XmlResourceParser parser = null;
@@ -186,8 +184,12 @@ public class RegisteredComponentCache {
                 throw new XmlPullParserException("No " + mMetaDataName + " meta-data");
             }
 
-            parseTechLists(pm.getResourcesForApplication(ai.applicationInfo), ai.packageName,
-                    parser, info, components);
+            parseTechLists(
+                    pm.getResourcesForApplication(ai.applicationInfo),
+                    ai.packageName,
+                    parser,
+                    info,
+                    components);
         } catch (NameNotFoundException e) {
             throw new XmlPullParserException("Unable to load resources for " + ai.packageName);
         } finally {
@@ -195,8 +197,12 @@ public class RegisteredComponentCache {
         }
     }
 
-    void parseTechLists(Resources res, String packageName, XmlPullParser parser,
-            ResolveInfo resolveInfo, ArrayList<ComponentInfo> components)
+    void parseTechLists(
+            Resources res,
+            String packageName,
+            XmlPullParser parser,
+            ResolveInfo resolveInfo,
+            ArrayList<ComponentInfo> components)
             throws XmlPullParserException, IOException {
         int eventType = parser.getEventType();
         while (eventType != XmlPullParser.START_TAG) {

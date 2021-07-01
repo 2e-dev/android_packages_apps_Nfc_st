@@ -15,9 +15,6 @@
  */
 package com.android.nfc;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.app.ActivityManager;
 import android.app.IActivityManager;
 import android.app.IProcessObserver;
@@ -25,6 +22,8 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ForegroundUtils extends IProcessObserver.Stub {
     static final boolean DBG = false;
@@ -63,15 +62,15 @@ public class ForegroundUtils extends IProcessObserver.Stub {
     }
 
     /**
-     * Checks whether the specified UID has any activities running in the foreground,
-     * and if it does, registers a callback for when that UID no longer has any foreground
-     * activities. This is done atomically, so callers can be ensured that they will
-     * get a callback if this method returns true.
+     * Checks whether the specified UID has any activities running in the foreground, and if it
+     * does, registers a callback for when that UID no longer has any foreground activities. This is
+     * done atomically, so callers can be ensured that they will get a callback if this method
+     * returns true.
      *
      * @param callback Callback to be called
      * @param uid The UID to be checked
-     * @return true when the UID has an Activity in the foreground and the callback
-     * , false otherwise
+     * @return true when the UID has an Activity in the foreground and the callback , false
+     *     otherwise
      */
     public boolean registerUidToBackgroundCallback(Callback callback, int uid) {
         synchronized (mLock) {
@@ -97,10 +96,7 @@ public class ForegroundUtils extends IProcessObserver.Stub {
         }
     }
 
-    /**
-     * @return a list of UIDs currently in the foreground, or an empty list
-     *         if none are found.
-     */
+    /** @return a list of UIDs currently in the foreground, or an empty list if none are found. */
     public List<Integer> getForegroundUids() {
         ArrayList<Integer> uids = new ArrayList<Integer>(mForegroundUidPids.size());
         synchronized (mLock) {
@@ -112,8 +108,7 @@ public class ForegroundUtils extends IProcessObserver.Stub {
     }
 
     private boolean isInForegroundLocked(int uid) {
-        if (mForegroundUidPids.get(uid) != null)
-            return true;
+        if (mForegroundUidPids.get(uid) != null) return true;
         if (DBG) Log.d(TAG, "Checking UID:" + Integer.toString(uid));
         try {
             // If the onForegroundActivitiesChanged() has not yet been called,
@@ -144,16 +139,16 @@ public class ForegroundUtils extends IProcessObserver.Stub {
     }
 
     @Override
-    public void onForegroundActivitiesChanged(int pid, int uid,
-            boolean hasForegroundActivities) throws RemoteException {
+    public void onForegroundActivitiesChanged(int pid, int uid, boolean hasForegroundActivities)
+            throws RemoteException {
         boolean uidToBackground = false;
         synchronized (mLock) {
-            SparseBooleanArray foregroundPids = mForegroundUidPids.get(uid,
-                    new SparseBooleanArray());
+            SparseBooleanArray foregroundPids =
+                    mForegroundUidPids.get(uid, new SparseBooleanArray());
             if (hasForegroundActivities) {
-               foregroundPids.put(pid, true);
+                foregroundPids.put(pid, true);
             } else {
-               foregroundPids.delete(pid);
+                foregroundPids.delete(pid);
             }
             if (foregroundPids.size() == 0) {
                 mForegroundUidPids.remove(uid);
@@ -166,9 +161,15 @@ public class ForegroundUtils extends IProcessObserver.Stub {
             handleUidToBackground(uid);
         }
         if (DBG) {
-            if (DBG) Log.d(TAG, "Foreground changed, PID: " + Integer.toString(pid) + " UID: " +
-                                    Integer.toString(uid) + " foreground: " +
-                                    hasForegroundActivities);
+            if (DBG)
+                Log.d(
+                        TAG,
+                        "Foreground changed, PID: "
+                                + Integer.toString(pid)
+                                + " UID: "
+                                + Integer.toString(uid)
+                                + " foreground: "
+                                + hasForegroundActivities);
             synchronized (mLock) {
                 Log.d(TAG, "Foreground UID/PID combinations:");
                 for (int i = 0; i < mForegroundUidPids.size(); i++) {
@@ -178,21 +179,26 @@ public class ForegroundUtils extends IProcessObserver.Stub {
                         Log.e(TAG, "No PIDS associated with foreground UID!");
                     }
                     for (int j = 0; j < foregroundPids.size(); j++)
-                        Log.d(TAG, "UID: " + Integer.toString(foregroundUid) + " PID: " +
-                                Integer.toString(foregroundPids.keyAt(j)));
+                        Log.d(
+                                TAG,
+                                "UID: "
+                                        + Integer.toString(foregroundUid)
+                                        + " PID: "
+                                        + Integer.toString(foregroundPids.keyAt(j)));
                 }
             }
         }
     }
 
     @Override
-    public void onForegroundServicesChanged(int pid, int uid, int fgServiceTypes) {
-    }
+    public void onForegroundServicesChanged(int pid, int uid, int fgServiceTypes) {}
 
     @Override
     public void onProcessDied(int pid, int uid) throws RemoteException {
-        if (DBG) Log.d(TAG, "Process died; UID " + Integer.toString(uid) + " PID " +
-                Integer.toString(pid));
+        if (DBG)
+            Log.d(
+                    TAG,
+                    "Process died; UID " + Integer.toString(uid) + " PID " + Integer.toString(pid));
         onForegroundActivitiesChanged(pid, uid, false);
     }
 }

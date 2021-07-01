@@ -16,16 +16,13 @@
 
 package com.android.nfc;
 
-import com.android.nfc.beam.SendUi;
-
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Vibrator;
+import com.android.nfc.beam.SendUi;
 
-/**
- * Manages vibration, sound and animation for P2P events.
- */
+/** Manages vibration, sound and animation for P2P events. */
 public class P2pEventManager implements P2pEventListener, SendUi.Callback {
     static final String TAG = "NfcP2pEventManager";
     static final boolean DBG = true;
@@ -50,12 +47,12 @@ public class P2pEventManager implements P2pEventListener, SendUi.Callback {
         mContext = context;
         mCallback = callback;
         mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-        mNotificationManager = (NotificationManager) mContext.getSystemService(
-                Context.NOTIFICATION_SERVICE);
+        mNotificationManager =
+                (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
 
         mSending = false;
-        final int uiModeType = mContext.getResources().getConfiguration().uiMode
-                & Configuration.UI_MODE_TYPE_MASK;
+        final int uiModeType =
+                mContext.getResources().getConfiguration().uiMode & Configuration.UI_MODE_TYPE_MASK;
         if (uiModeType == Configuration.UI_MODE_TYPE_APPLIANCE) {
             // "Appliances" don't intrinsically have a way of confirming this, so we
             // don't use the UI and just autoconfirm where necessary.
@@ -124,8 +121,8 @@ public class P2pEventManager implements P2pEventListener, SendUi.Callback {
     public void onP2pHandoverNotSupported() {
         mNfcService.playSound(NfcService.SOUND_ERROR);
         mVibrator.vibrate(VIBRATION_PATTERN, -1);
-        mSendUi.finishAndToast(SendUi.FINISH_SCALE_UP,
-                mContext.getString(R.string.beam_handover_not_supported));
+        mSendUi.finishAndToast(
+                SendUi.FINISH_SCALE_UP, mContext.getString(R.string.beam_handover_not_supported));
         mSending = false;
         mNdefSent = false;
     }
@@ -177,7 +174,6 @@ public class P2pEventManager implements P2pEventListener, SendUi.Callback {
             mCallback.onP2pSendConfirmed();
         }
         mSending = true;
-
     }
 
     @Override

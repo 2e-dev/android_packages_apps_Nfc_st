@@ -16,13 +16,6 @@
 
 package com.android.nfc.cardemulation;
 
-import com.android.internal.R;
-import com.android.internal.app.AlertActivity;
-import com.android.internal.app.AlertController;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -34,7 +27,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.drawable.Drawable;
 import android.nfc.NfcAdapter;
-import android.nfc.cardemulation.ApduServiceInfo;
 import android.nfc.cardemulation.CardEmulation;
 import android.os.Bundle;
 import android.util.Log;
@@ -48,11 +40,17 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import com.android.internal.R;
+import com.android.internal.app.AlertActivity;
+import com.android.internal.app.AlertController;
+import com.st.android.nfc_extensions.StApduServiceInfo;
+import java.util.ArrayList;
+import java.util.List;
 
-public class AppChooserActivity extends AlertActivity
-        implements AdapterView.OnItemClickListener {
+public class AppChooserActivity extends AlertActivity implements AdapterView.OnItemClickListener {
 
-    static final String TAG = "AppChooserActivity";
+    static final String TAG = "HCENfc_AppChooserActivity";
+    static final boolean DBG = true;
 
     public static final String EXTRA_APDU_SERVICES = "services";
     public static final String EXTRA_CATEGORY = "category";
@@ -64,12 +62,13 @@ public class AppChooserActivity extends AlertActivity
     private CardEmulation mCardEmuManager;
     private String mCategory;
 
-    final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            finish();
-        }
-    };
+    final BroadcastReceiver mReceiver =
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    finish();
+                }
+            };
 
     @Override
     protected void onDestroy() {
@@ -77,9 +76,16 @@ public class AppChooserActivity extends AlertActivity
         unregisterReceiver(mReceiver);
     }
 
-    protected void onCreate(Bundle savedInstanceState, String category,
-            ArrayList<ApduServiceInfo> options, ComponentName failedComponent) {
+    protected void onCreate(
+            Bundle savedInstanceState,
+            String category,
+            ArrayList<StApduServiceInfo> options,
+            ComponentName failedComponent) {
+
         super.onCreate(savedInstanceState);
+
+        if (DBG) Log.d(TAG, "onCreate()");
+
         setTheme(com.android.nfc.R.style.DialogAlertDayNight);
 
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
@@ -114,7 +120,6 @@ public class AppChooserActivity extends AlertActivity
                 applicationLabel = info.loadLabel(pm);
             } catch (NameNotFoundException e) {
             }
-
         }
         if (options.size() == 0 && failedComponent != null) {
             String formatString = getString(com.android.nfc.R.string.transaction_failure);
@@ -156,8 +161,12 @@ public class AppChooserActivity extends AlertActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        if (DBG) Log.d(TAG, "onCreate()");
+
         Intent intent = getIntent();
-        ArrayList<ApduServiceInfo> services = intent.getParcelableArrayListExtra(EXTRA_APDU_SERVICES);
+        ArrayList<StApduServiceInfo> services =
+                intent.getParcelableArrayListExtra(EXTRA_APDU_SERVICES);
         String category = intent.getStringExtra(EXTRA_CATEGORY);
         ComponentName failedComponent = intent.getParcelableExtra(EXTRA_FAILED_COMPONENT);
         onCreate(savedInstanceState, category, services, failedComponent);
@@ -165,6 +174,9 @@ public class AppChooserActivity extends AlertActivity
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+        if (DBG) Log.d(TAG, "onItemClick()");
+
         DisplayAppInfo info = (DisplayAppInfo) mListAdapter.getItem(position);
         mCardEmuManager.setDefaultForNextTap(info.serviceInfo.getComponent());
         Intent dialogIntent = new Intent(this, TapAgainDialog.class);
@@ -175,13 +187,14 @@ public class AppChooserActivity extends AlertActivity
     }
 
     final class DisplayAppInfo {
-        ApduServiceInfo serviceInfo;
+        StApduServiceInfo serviceInfo;
         CharSequence displayLabel;
         Drawable displayIcon;
         Drawable displayBanner;
 
-        public DisplayAppInfo(ApduServiceInfo serviceInfo, CharSequence label, Drawable icon,
-                Drawable banner) {
+        public DisplayAppInfo(
+                StApduServiceInfo serviceInfo, CharSequence label, Drawable icon, Drawable banner) {
+            if (DBG) Log.d(TAG, "DisplayAppInfo - constructor");
             this.serviceInfo = serviceInfo;
             displayIcon = icon;
             displayLabel = label;
@@ -194,14 +207,15 @@ public class AppChooserActivity extends AlertActivity
         private final boolean mIsPayment;
         private List<DisplayAppInfo> mList;
 
-        public ListAdapter(Context context, ArrayList<ApduServiceInfo> services) {
-            mInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        public ListAdapter(Context context, ArrayList<StApduServiceInfo> services) {
+            if (DBG) Log.d(TAG, "ListAdapter - constructor");
+            mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             // For each component, get the corresponding app name and icon
             PackageManager pm = getPackageManager();
             mList = new ArrayList<DisplayAppInfo>();
             mIsPayment = CardEmulation.CATEGORY_PAYMENT.equals(mCategory);
-            for (ApduServiceInfo service : services) {
-                CharSequence label = service.getDescription();
+            for (StApduServiceInfo service : services) {
+                CharSequence label = service.getGsmaDescription(pm);
                 if (label == null) label = service.loadLabel(pm);
                 Drawable icon = service.loadIcon(pm);
                 Drawable banner = null;
@@ -237,11 +251,11 @@ public class AppChooserActivity extends AlertActivity
             View view;
             if (convertView == null) {
                 if (mIsPayment) {
-                    view = mInflater.inflate(
-                            com.android.nfc.R.layout.cardemu_payment_item, parent, false);
+                    view =
+                            mInflater.inflate(
+                                    com.android.nfc.R.layout.cardemu_payment_item, parent, false);
                 } else {
-                    view = mInflater.inflate(
-                            com.android.nfc.R.layout.cardemu_item, parent, false);
+                    view = mInflater.inflate(com.android.nfc.R.layout.cardemu_item, parent, false);
                 }
                 final ViewHolder holder = new ViewHolder(view);
                 view.setTag(holder);
@@ -268,6 +282,7 @@ public class AppChooserActivity extends AlertActivity
         public TextView text;
         public ImageView icon;
         public ImageView banner;
+
         public ViewHolder(View view) {
             text = (TextView) view.findViewById(com.android.nfc.R.id.applabel);
             icon = (ImageView) view.findViewById(com.android.nfc.R.id.appicon);

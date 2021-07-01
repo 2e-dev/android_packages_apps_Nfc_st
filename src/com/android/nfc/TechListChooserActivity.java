@@ -16,14 +16,12 @@
 
 package com.android.nfc;
 
-import com.android.internal.app.ResolverActivity;
-
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
-
+import com.android.internal.app.ResolverActivity;
 import java.util.ArrayList;
 
 public class TechListChooserActivity extends ResolverActivity {
@@ -38,7 +36,7 @@ public class TechListChooserActivity extends ResolverActivity {
             finish();
             return;
         }
-        Intent target = (Intent)targetParcelable;
+        Intent target = (Intent) targetParcelable;
         ArrayList<ResolveInfo> rList = intent.getParcelableArrayListExtra(EXTRA_RESOLVE_INFOS);
         CharSequence title = getResources().getText(com.android.internal.R.string.chooseActivity);
         super.onCreate(savedInstanceState, target, title, null, rList, false);

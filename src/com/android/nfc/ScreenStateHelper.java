@@ -4,9 +4,7 @@ import android.app.KeyguardManager;
 import android.content.Context;
 import android.os.PowerManager;
 
-/**
- * Helper class for determining the current screen state for NFC activities.
- */
+/** Helper class for determining the current screen state for NFC activities. */
 class ScreenStateHelper {
 
     static final int SCREEN_STATE_UNKNOWN = 0x00;
@@ -15,7 +13,7 @@ class ScreenStateHelper {
     static final int SCREEN_STATE_ON_LOCKED = 0x04;
     static final int SCREEN_STATE_ON_UNLOCKED = 0x08;
 
-    //Polling mask
+    // Polling mask
     static final int SCREEN_POLLING_TAG_MASK = 0x10;
     static final int SCREEN_POLLING_P2P_MASK = 0x20;
     static final int SCREEN_POLLING_READER_MASK = 0x40;
@@ -24,15 +22,14 @@ class ScreenStateHelper {
     private final KeyguardManager mKeyguardManager;
 
     ScreenStateHelper(Context context) {
-        mKeyguardManager = (KeyguardManager)
-                context.getSystemService(Context.KEYGUARD_SERVICE);
+        mKeyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
         mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
     }
 
     int checkScreenState() {
-        //TODO: fix deprecated api
+        // TODO: fix deprecated api
         if (!mPowerManager.isScreenOn()) {
-            if(mKeyguardManager.isKeyguardLocked()) {
+            if (mKeyguardManager.isKeyguardLocked()) {
                 return SCREEN_STATE_OFF_LOCKED;
             } else {
                 return SCREEN_STATE_OFF_UNLOCKED;
@@ -44,9 +41,14 @@ class ScreenStateHelper {
         }
     }
 
-    /**
-     * For debugging only - no i18n
-     */
+    int adaptMaskForQiCharging(int prev) {
+        // We remove any polling in this case.
+        int ret = prev & 0x0F;
+        if (ret == SCREEN_STATE_ON_UNLOCKED) ret = SCREEN_STATE_ON_LOCKED;
+        return ret;
+    }
+
+    /** For debugging only - no i18n */
     static String screenStateToString(int screenState) {
         switch (screenState) {
             case SCREEN_STATE_OFF_LOCKED:

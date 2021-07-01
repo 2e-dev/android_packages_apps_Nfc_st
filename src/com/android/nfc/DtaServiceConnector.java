@@ -16,8 +16,6 @@
 
 package com.android.nfc;
 
-import java.util.List;
-
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -29,15 +27,14 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import java.util.List;
 
 public class DtaServiceConnector {
-
 
     private static String sMessageService;
     Context mContext;
     Messenger dtaMessenger = null;
     boolean isBound;
-
 
     public DtaServiceConnector(Context mContext) {
         this.mContext = mContext;
@@ -46,22 +43,25 @@ public class DtaServiceConnector {
     public void bindService() {
         if (!isBound) {
             Intent intent = new Intent(sMessageService);
-            mContext.bindService(createExplicitFromImplicitIntent(mContext,intent),
-                                   myConnection,Context.BIND_AUTO_CREATE);
+            mContext.bindService(
+                    createExplicitFromImplicitIntent(mContext, intent),
+                    myConnection,
+                    Context.BIND_AUTO_CREATE);
         }
     }
 
-    private ServiceConnection myConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            dtaMessenger = new Messenger(service);
-            isBound = true;
-        }
+    private ServiceConnection myConnection =
+            new ServiceConnection() {
+                public void onServiceConnected(ComponentName className, IBinder service) {
+                    dtaMessenger = new Messenger(service);
+                    isBound = true;
+                }
 
-        public void onServiceDisconnected(ComponentName className) {
-            dtaMessenger = null;
-            isBound = false;
-        }
-    };
+                public void onServiceDisconnected(ComponentName className) {
+                    dtaMessenger = null;
+                    isBound = false;
+                }
+            };
 
     public void sendMessage(String ndefMessage) {
         if (!isBound) return;
@@ -96,5 +96,4 @@ public class DtaServiceConnector {
     public static void setMessageService(String service) {
         sMessageService = service;
     }
-
 }

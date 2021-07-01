@@ -1,20 +1,19 @@
 /*
-* Copyright (C) 2014 The Android Open Source Project
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (C) 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.android.nfc;
-
 
 import android.app.ActivityManager;
 import android.content.Context;
@@ -25,11 +24,8 @@ import android.nfc.NdefRecord;
 import android.nfc.tech.Ndef;
 import android.os.UserHandle;
 import android.os.UserManager;
-import android.util.Log;
-
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.BitSet;
 
 public final class NfcWifiProtectedSetup {
@@ -51,7 +47,7 @@ public final class NfcWifiProtectedSetup {
 
     private static final short AUTH_TYPE_OPEN = 0x0001;
     private static final short AUTH_TYPE_WPA_PSK = 0x0002;
-    private static final short AUTH_TYPE_WPA_EAP =  0x0008;
+    private static final short AUTH_TYPE_WPA_EAP = 0x0008;
     private static final short AUTH_TYPE_WPA2_EAP = 0x0010;
     private static final short AUTH_TYPE_WPA2_PSK = 0x0020;
     private static final short AUTH_TYPE_WPA_AND_WPA2_PSK = 0x0022;
@@ -79,14 +75,19 @@ public final class NfcWifiProtectedSetup {
             return false;
         }
 
-        if (wifiConfiguration != null &&!UserManager.get(context).hasUserRestriction(
-                UserManager.DISALLOW_CONFIG_WIFI,
-                // hasUserRestriction does not support UserHandle.CURRENT.
-                UserHandle.of(ActivityManager.getCurrentUser()))) {
-            Intent configureNetworkIntent = new Intent()
-                    .putExtra(EXTRA_WIFI_CONFIG, wifiConfiguration)
-                    .setClass(context, ConfirmConnectToWifiNetworkActivity.class)
-                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        if (wifiConfiguration != null
+                && !UserManager.get(context)
+                        .hasUserRestriction(
+                                UserManager.DISALLOW_CONFIG_WIFI,
+                                // hasUserRestriction does not support UserHandle.CURRENT.
+                                UserHandle.of(ActivityManager.getCurrentUser()))) {
+            Intent configureNetworkIntent =
+                    new Intent()
+                            .putExtra(EXTRA_WIFI_CONFIG, wifiConfiguration)
+                            .setClass(context, ConfirmConnectToWifiNetworkActivity.class)
+                            .setFlags(
+                                    Intent.FLAG_ACTIVITY_NEW_TASK
+                                            | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
             context.startActivityAsUser(configureNetworkIntent, UserHandle.CURRENT);
             return true;
@@ -174,7 +175,8 @@ public final class NfcWifiProtectedSetup {
     }
 
     private static void populateAllowedKeyManagement(BitSet allowedKeyManagement, short authType) {
-        if (authType == AUTH_TYPE_WPA_PSK || authType == AUTH_TYPE_WPA2_PSK
+        if (authType == AUTH_TYPE_WPA_PSK
+                || authType == AUTH_TYPE_WPA2_PSK
                 || authType == AUTH_TYPE_WPA_AND_WPA2_PSK) {
             allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
         } else if (authType == AUTH_TYPE_WPA_EAP || authType == AUTH_TYPE_WPA2_EAP) {

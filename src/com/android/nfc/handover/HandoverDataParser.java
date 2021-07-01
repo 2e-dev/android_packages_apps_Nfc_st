@@ -16,40 +16,32 @@
 
 package com.android.nfc.handover;
 
-import java.nio.BufferUnderflowException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Random;
-
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.OobData;
-import android.content.Context;
-import android.content.Intent;
 import android.nfc.FormatException;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.os.ParcelUuid;
-import android.os.UserHandle;
 import android.util.Log;
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Random;
 
-/**
- * Manages handover of NFC to other technologies.
- */
+/** Manages handover of NFC to other technologies. */
 public class HandoverDataParser {
     private static final String TAG = "NfcHandover";
     private static final boolean DBG = false;
 
-    private static final byte[] TYPE_BT_OOB = "application/vnd.bluetooth.ep.oob"
-            .getBytes(StandardCharsets.US_ASCII);
-    private static final byte[] TYPE_BLE_OOB = "application/vnd.bluetooth.le.oob"
-            .getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] TYPE_BT_OOB =
+            "application/vnd.bluetooth.ep.oob".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] TYPE_BLE_OOB =
+            "application/vnd.bluetooth.le.oob".getBytes(StandardCharsets.US_ASCII);
 
     private static final byte[] TYPE_NOKIA = "nokia.com:bt".getBytes(StandardCharsets.US_ASCII);
 
@@ -105,8 +97,8 @@ public class HandoverDataParser {
         public final NdefMessage handoverSelect;
         public final BluetoothHandoverData handoverData;
 
-        public IncomingHandoverData(NdefMessage handoverSelect,
-                                    BluetoothHandoverData handoverData) {
+        public IncomingHandoverData(
+                NdefMessage handoverSelect, BluetoothHandoverData handoverData) {
             this.handoverSelect = handoverSelect;
             this.handoverData = handoverData;
         }
@@ -124,13 +116,17 @@ public class HandoverDataParser {
 
     NdefRecord createBluetoothAlternateCarrierRecord(boolean activating) {
         byte[] payload = new byte[4];
-        payload[0] = (byte) (activating ? CARRIER_POWER_STATE_ACTIVATING :
-            CARRIER_POWER_STATE_ACTIVE);  // Carrier Power State: Activating or active
-        payload[1] = 1;   // length of carrier data reference
+        payload[0] =
+                (byte)
+                        (activating
+                                ? CARRIER_POWER_STATE_ACTIVATING
+                                : CARRIER_POWER_STATE_ACTIVE); // Carrier Power State: Activating or
+        // active
+        payload[1] = 1; // length of carrier data reference
         payload[2] = 'b'; // carrier data reference: ID for Bluetooth OOB data record
-        payload[3] = 0;  // Auxiliary data reference count
-        return new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_ALTERNATIVE_CARRIER, null,
-                payload);
+        payload[3] = 0; // Auxiliary data reference count
+        return new NdefRecord(
+                NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_ALTERNATIVE_CARRIER, null, payload);
     }
 
     NdefRecord createBluetoothOobDataRecord() {
@@ -156,7 +152,7 @@ public class HandoverDataParser {
             }
         }
 
-        return new NdefRecord(NdefRecord.TNF_MIME_MEDIA, TYPE_BT_OOB, new byte[]{'b'}, payload);
+        return new NdefRecord(NdefRecord.TNF_MIME_MEDIA, TYPE_BT_OOB, new byte[] {'b'}, payload);
     }
 
     public boolean isHandoverSupported() {
@@ -168,17 +164,13 @@ public class HandoverDataParser {
             return null;
         }
 
-        NdefRecord[] dataRecords = new NdefRecord[] {
-                createBluetoothOobDataRecord()
-        };
-        return new NdefMessage(
-                createHandoverRequestRecord(),
-                dataRecords);
+        NdefRecord[] dataRecords = new NdefRecord[] {createBluetoothOobDataRecord()};
+        return new NdefMessage(createHandoverRequestRecord(), dataRecords);
     }
 
     NdefMessage createBluetoothHandoverSelectMessage(boolean activating) {
-        return new NdefMessage(createHandoverSelectRecord(
-                createBluetoothAlternateCarrierRecord(activating)),
+        return new NdefMessage(
+                createHandoverSelectRecord(createBluetoothAlternateCarrierRecord(activating)),
                 createBluetoothOobDataRecord());
     }
 
@@ -187,39 +179,37 @@ public class HandoverDataParser {
         byte[] nestedPayload = nestedMessage.toByteArray();
 
         ByteBuffer payload = ByteBuffer.allocate(nestedPayload.length + 1);
-        payload.put((byte)0x12);  // connection handover v1.2
+        payload.put((byte) 0x12); // connection handover v1.2
         payload.put(nestedPayload);
 
         byte[] payloadBytes = new byte[payload.position()];
         payload.position(0);
         payload.get(payloadBytes);
-        return new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_HANDOVER_SELECT, null,
-                payloadBytes);
+        return new NdefRecord(
+                NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_HANDOVER_SELECT, null, payloadBytes);
     }
 
     NdefRecord createHandoverRequestRecord() {
-        NdefRecord[] messages = new NdefRecord[] {
-                createBluetoothAlternateCarrierRecord(false)
-        };
+        NdefRecord[] messages = new NdefRecord[] {createBluetoothAlternateCarrierRecord(false)};
 
         NdefMessage nestedMessage = new NdefMessage(createCollisionRecord(), messages);
 
         byte[] nestedPayload = nestedMessage.toByteArray();
 
         ByteBuffer payload = ByteBuffer.allocate(nestedPayload.length + 1);
-        payload.put((byte) 0x12);  // connection handover v1.2
+        payload.put((byte) 0x12); // connection handover v1.2
         payload.put(nestedMessage.toByteArray());
 
         byte[] payloadBytes = new byte[payload.position()];
         payload.position(0);
         payload.get(payloadBytes);
-        return new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_HANDOVER_REQUEST, null,
-                payloadBytes);
+        return new NdefRecord(
+                NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_HANDOVER_REQUEST, null, payloadBytes);
     }
 
     /**
-     * Returns null if message is not a Handover Request,
-     * returns the IncomingHandoverData (Hs + parsed data) if it is.
+     * Returns null if message is not a Handover Request, returns the IncomingHandoverData (Hs +
+     * parsed data) if it is.
      */
     public IncomingHandoverData getIncomingHandoverData(NdefMessage handoverRequest) {
         if (handoverRequest == null) return null;
@@ -272,14 +262,18 @@ public class HandoverDataParser {
 
             // return BT OOB record so they can perform handover
             selectMessage = (createBluetoothHandoverSelectMessage(bluetoothActivating));
-            if (DBG) Log.d(TAG, "Waiting for incoming transfer, [" +
-                    bluetoothData.device.getAddress() + "]->[" + mLocalBluetoothAddress + "]");
+            if (DBG)
+                Log.d(
+                        TAG,
+                        "Waiting for incoming transfer, ["
+                                + bluetoothData.device.getAddress()
+                                + "]->["
+                                + mLocalBluetoothAddress
+                                + "]");
         }
 
         return selectMessage;
     }
-
-
 
     boolean isCarrierActivating(NdefRecord handoverRec, byte[] carrierId) {
         byte[] payload = handoverRec.getPayload();
@@ -319,8 +313,8 @@ public class HandoverDataParser {
         // we just search for a BT OOB record, and try to cross-reference
         // the carrier state inside the 'hs' payload.
         for (NdefRecord oob : m.getRecords()) {
-            if (oob.getTnf() == NdefRecord.TNF_MIME_MEDIA &&
-                    Arrays.equals(oob.getType(), TYPE_BT_OOB)) {
+            if (oob.getTnf() == NdefRecord.TNF_MIME_MEDIA
+                    && Arrays.equals(oob.getType(), TYPE_BT_OOB)) {
                 BluetoothHandoverData data = parseBtOob(ByteBuffer.wrap(oob.getPayload()));
                 if (data != null && isCarrierActivating(m.getRecords()[0], oob.getId())) {
                     data.carrierActivating = true;
@@ -328,8 +322,8 @@ public class HandoverDataParser {
                 return data;
             }
 
-            if (oob.getTnf() == NdefRecord.TNF_MIME_MEDIA &&
-                    Arrays.equals(oob.getType(), TYPE_BLE_OOB)) {
+            if (oob.getTnf() == NdefRecord.TNF_MIME_MEDIA
+                    && Arrays.equals(oob.getType(), TYPE_BLE_OOB)) {
                 return parseBleOob(ByteBuffer.wrap(oob.getPayload()));
             }
         }
@@ -353,8 +347,8 @@ public class HandoverDataParser {
         }
 
         // Check for Handover Select, followed by a BT OOB record
-        if (tnf == NdefRecord.TNF_WELL_KNOWN &&
-                Arrays.equals(type, NdefRecord.RTD_HANDOVER_SELECT)) {
+        if (tnf == NdefRecord.TNF_WELL_KNOWN
+                && Arrays.equals(type, NdefRecord.RTD_HANDOVER_SELECT)) {
             return parseBluetoothHandoverSelect(m);
         }
 
@@ -413,7 +407,7 @@ public class HandoverDataParser {
                         success = true;
                         break;
                     case BT_HANDOVER_TYPE_LONG_LOCAL_NAME:
-                        if (result.name != null) break;  // prefer short name
+                        if (result.name != null) break; // prefer short name
                         nameBytes = new byte[len - 1];
                         payload.get(nameBytes);
                         result.name = new String(nameBytes, StandardCharsets.UTF_8);
@@ -432,8 +426,11 @@ public class HandoverDataParser {
                         break;
                     case BT_HANDOVER_TYPE_CLASS_OF_DEVICE:
                         if (len - 1 != CLASS_OF_DEVICE_SIZE) {
-                            Log.i(TAG, "BT OOB: invalid size of Class of Device, should be " +
-                                  CLASS_OF_DEVICE_SIZE + " bytes.");
+                            Log.i(
+                                    TAG,
+                                    "BT OOB: invalid size of Class of Device, should be "
+                                            + CLASS_OF_DEVICE_SIZE
+                                            + " bytes.");
                             break;
                         }
                         result.btClass = parseBluetoothClassFromBluetoothRecord(payload);
@@ -467,12 +464,10 @@ public class HandoverDataParser {
                 int type = payload.get();
                 switch (type) {
                     case BT_HANDOVER_TYPE_MAC: // mac address
-
                         int startpos = payload.position();
                         byte[] bdaddr = new byte[7]; // 6 bytes for mac, 1 for addres type
                         payload.get(bdaddr);
-                        if (result.oobData == null)
-                            result.oobData = new OobData();
+                        if (result.oobData == null) result.oobData = new OobData();
                         result.oobData.setLeBluetoothDeviceAddress(bdaddr);
                         payload.position(startpos);
 
@@ -495,47 +490,53 @@ public class HandoverDataParser {
                         result.name = new String(nameBytes, StandardCharsets.UTF_8);
                         break;
                     case BT_HANDOVER_TYPE_SECURITY_MANAGER_TK:
-                        if (len-1 != SECURITY_MANAGER_TK_SIZE) {
-                            Log.i(TAG, "BT OOB: invalid size of SM TK, should be " +
-                                  SECURITY_MANAGER_TK_SIZE + " bytes.");
+                        if (len - 1 != SECURITY_MANAGER_TK_SIZE) {
+                            Log.i(
+                                    TAG,
+                                    "BT OOB: invalid size of SM TK, should be "
+                                            + SECURITY_MANAGER_TK_SIZE
+                                            + " bytes.");
                             break;
                         }
 
                         byte[] securityManagerTK = new byte[len - 1];
                         payload.get(securityManagerTK);
 
-                        if (result.oobData == null)
-                            result.oobData = new OobData();
+                        if (result.oobData == null) result.oobData = new OobData();
                         result.oobData.setSecurityManagerTk(securityManagerTK);
                         break;
 
                     case BT_HANDOVER_TYPE_LE_SC_CONFIRMATION:
                         if (len - 1 != SECURITY_MANAGER_LE_SC_C_SIZE) {
-                            Log.i(TAG, "BT OOB: invalid size of LE SC Confirmation, should be " +
-                                  SECURITY_MANAGER_LE_SC_C_SIZE + " bytes.");
+                            Log.i(
+                                    TAG,
+                                    "BT OOB: invalid size of LE SC Confirmation, should be "
+                                            + SECURITY_MANAGER_LE_SC_C_SIZE
+                                            + " bytes.");
                             break;
                         }
 
                         byte[] leScC = new byte[len - 1];
                         payload.get(leScC);
 
-                        if (result.oobData == null)
-                            result.oobData = new OobData();
+                        if (result.oobData == null) result.oobData = new OobData();
                         result.oobData.setLeSecureConnectionsConfirmation(leScC);
                         break;
 
                     case BT_HANDOVER_TYPE_LE_SC_RANDOM:
-                        if (len-1 != SECURITY_MANAGER_LE_SC_R_SIZE) {
-                            Log.i(TAG, "BT OOB: invalid size of LE SC Random, should be " +
-                                  SECURITY_MANAGER_LE_SC_R_SIZE + " bytes.");
+                        if (len - 1 != SECURITY_MANAGER_LE_SC_R_SIZE) {
+                            Log.i(
+                                    TAG,
+                                    "BT OOB: invalid size of LE SC Random, should be "
+                                            + SECURITY_MANAGER_LE_SC_R_SIZE
+                                            + " bytes.");
                             break;
                         }
 
                         byte[] leScR = new byte[len - 1];
                         payload.get(leScR);
 
-                        if (result.oobData == null)
-                            result.oobData = new OobData();
+                        if (result.oobData == null) result.oobData = new OobData();
                         result.oobData.setLeSecureConnectionsRandom(leScR);
                         break;
 
@@ -580,7 +581,7 @@ public class HandoverDataParser {
 
         for (int i = 0; i < split.length; i++) {
             // need to parse as int because parseByte() expects a signed byte
-            result[split.length - 1 - i] = (byte)Integer.parseInt(split[i], 16);
+            result[split.length - 1 - i] = (byte) Integer.parseInt(split[i], 16);
         }
 
         return result;

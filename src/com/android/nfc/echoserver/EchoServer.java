@@ -16,45 +16,36 @@
 
 package com.android.nfc.echoserver;
 
-import com.android.nfc.DeviceHost.LlcpConnectionlessSocket;
-import com.android.nfc.LlcpException;
-import com.android.nfc.DeviceHost.LlcpServerSocket;
-import com.android.nfc.DeviceHost.LlcpSocket;
-import com.android.nfc.LlcpPacket;
-import com.android.nfc.NfcService;
-
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-
+import com.android.nfc.DeviceHost.LlcpConnectionlessSocket;
+import com.android.nfc.DeviceHost.LlcpServerSocket;
+import com.android.nfc.DeviceHost.LlcpSocket;
+import com.android.nfc.LlcpException;
+import com.android.nfc.LlcpPacket;
+import com.android.nfc.NfcService;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * EchoServer is an implementation of the echo server that is used in the
- * nfcpy LLCP test suite. Enabling the EchoServer allows to test Android
- * NFC devices against nfcpy.
- * It has two main features (which run simultaneously):
- * 1) A connection-based server, which has a receive buffer of two
- *    packets. Once a packet is received, a 2-second sleep is initiated.
- *    After these 2 seconds, all packets that are in the receive buffer
- *    are echoed back on the same connection. The connection-based server
- *    does not drop packets, but simply blocks if the queue is full.
- * 2) A connection-less mode, which has a receive buffer of two packets.
- *    On LLCP link activation, we try to receive data on a pre-determined
- *    connection-less SAP. Like the connection-based server, all data in
- *    the buffer is echoed back to the SAP from which the data originated
- *    after a sleep of two seconds.
- *    The main difference is that the connection-less SAP is supposed
- *    to drop packets when the buffer is full.
+ * EchoServer is an implementation of the echo server that is used in the nfcpy LLCP test suite.
+ * Enabling the EchoServer allows to test Android NFC devices against nfcpy. It has two main
+ * features (which run simultaneously): 1) A connection-based server, which has a receive buffer of
+ * two packets. Once a packet is received, a 2-second sleep is initiated. After these 2 seconds, all
+ * packets that are in the receive buffer are echoed back on the same connection. The
+ * connection-based server does not drop packets, but simply blocks if the queue is full. 2) A
+ * connection-less mode, which has a receive buffer of two packets. On LLCP link activation, we try
+ * to receive data on a pre-determined connection-less SAP. Like the connection-based server, all
+ * data in the buffer is echoed back to the SAP from which the data originated after a sleep of two
+ * seconds. The main difference is that the connection-less SAP is supposed to drop packets when the
+ * buffer is full.
  *
- *    To use with nfcpy:
- *    - Adapt default_miu (see ECHO_MIU below)
- *    - llcp-test-client.py --mode=target --co-echo=17 --cl-echo=18 -t 1
+ * <p>To use with nfcpy: - Adapt default_miu (see ECHO_MIU below) - llcp-test-client.py
+ * --mode=target --co-echo=17 --cl-echo=18 -t 1
  *
- *    Modify -t to execute the different tests.
- *
+ * <p>Modify -t to execute the different tests.
  */
 public class EchoServer {
     static boolean DBG = true;
@@ -86,18 +77,14 @@ public class EchoServer {
         static final int ECHO_DELAY_IN_MS = 2000;
 
         /**
-         * ECHO_MIU must be set equal to default_miu in nfcpy.
-         * The nfcpy echo server is expected to maintain the
-         * packet boundaries and sizes of the requests - that is,
-         * if the nfcpy client sends a service data unit of 48 bytes
-         * in a packet, the echo packet should have a payload of
-         * 48 bytes as well. The "problem" is that the current
-         * Android LLCP implementation simply pushes all received data
-         * in a single large buffer, causing us to loose the packet
-         * boundaries, not knowing how much data to put in a single
-         * response packet. The ECHO_MIU parameter determines exactly that.
-         * We use ECHO_MIU=48 because of a bug in PN544, which does not respect
-         * the target length reduction parameter of the p2p protocol.
+         * ECHO_MIU must be set equal to default_miu in nfcpy. The nfcpy echo server is expected to
+         * maintain the packet boundaries and sizes of the requests - that is, if the nfcpy client
+         * sends a service data unit of 48 bytes in a packet, the echo packet should have a payload
+         * of 48 bytes as well. The "problem" is that the current Android LLCP implementation simply
+         * pushes all received data in a single large buffer, causing us to loose the packet
+         * boundaries, not knowing how much data to put in a single response packet. The ECHO_MIU
+         * parameter determines exactly that. We use ECHO_MIU=48 because of a bug in PN544, which
+         * does not respect the target length reduction parameter of the p2p protocol.
          */
         static final int ECHO_MIU = 128;
 
@@ -147,9 +134,7 @@ public class EchoServer {
             }
         }
 
-        /** Shuts down the EchoMachine. May block until callbacks
-         *  in progress are completed.
-         */
+        /** Shuts down the EchoMachine. May block until callbacks in progress are completed. */
         public synchronized void shutdown() {
             dataQueue.clear();
             shutdown = true;
@@ -204,8 +189,9 @@ public class EchoServer {
         public void run() {
             if (DBG) Log.d(TAG, "about create LLCP service socket");
             try {
-                serverSocket = mService.createLlcpServerSocket(DEFAULT_CO_SAP,
-                        CONNECTION_SERVICE_NAME, MIU, 1, 1024);
+                serverSocket =
+                        mService.createLlcpServerSocket(
+                                DEFAULT_CO_SAP, CONNECTION_SERVICE_NAME, MIU, 1, 1024);
             } catch (LlcpException e) {
                 return;
             }
@@ -291,8 +277,9 @@ public class EchoServer {
             LlcpPacket packet;
             if (DBG) Log.d(TAG, "about create LLCP connectionless socket");
             try {
-                socket = mService.createLlcpConnectionLessSocket(
-                        DEFAULT_CL_SAP, CONNECTIONLESS_SERVICE_NAME);
+                socket =
+                        mService.createLlcpConnectionLessSocket(
+                                DEFAULT_CL_SAP, CONNECTIONLESS_SERVICE_NAME);
                 if (socket == null) {
                     if (DBG) Log.d(TAG, "failed to create LLCP connectionless socket");
                     return;
@@ -333,7 +320,6 @@ public class EchoServer {
                     }
                 }
             }
-
         }
 
         public void shutdown() {
@@ -371,9 +357,7 @@ public class EchoServer {
         }
     }
 
-    /**
-     *  Needs to be called on the UI thread
-     */
+    /** Needs to be called on the UI thread */
     public void start() {
         synchronized (this) {
             if (mServerThread == null) {
@@ -381,7 +365,6 @@ public class EchoServer {
                 mServerThread.start();
             }
         }
-
     }
 
     public void stop() {

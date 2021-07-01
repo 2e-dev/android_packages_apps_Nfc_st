@@ -18,9 +18,7 @@ package com.android.nfc.dhimpl;
 
 import com.android.nfc.DeviceHost.NfcDepEndpoint;
 
-/**
- * Native interface to the P2P Initiator functions
- */
+/** Native interface to the P2P Initiator functions */
 public class NativeP2pDevice implements NfcDepEndpoint {
 
     private int mHandle;
@@ -32,30 +30,35 @@ public class NativeP2pDevice implements NfcDepEndpoint {
     private byte mLlcpVersion;
 
     private native byte[] doReceive();
+
     @Override
     public byte[] receive() {
         return doReceive();
     }
 
     private native boolean doSend(byte[] data);
+
     @Override
     public boolean send(byte[] data) {
         return doSend(data);
     }
 
     private native boolean doConnect();
+
     @Override
     public boolean connect() {
         return doConnect();
     }
 
     private native boolean doDisconnect();
+
     @Override
     public boolean disconnect() {
         return doDisconnect();
     }
 
     public native byte[] doTransceive(byte[] data);
+
     @Override
     public byte[] transceive(byte[] data) {
         return doTransceive(data);

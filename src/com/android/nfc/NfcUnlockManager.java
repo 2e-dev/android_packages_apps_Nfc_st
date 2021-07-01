@@ -4,13 +4,10 @@ import android.nfc.INfcUnlockHandler;
 import android.nfc.Tag;
 import android.os.IBinder;
 import android.util.Log;
-
 import java.util.HashMap;
 import java.util.Iterator;
 
-/**
- * Singleton for handling NFC Unlock related logic and state.
- */
+/** Singleton for handling NFC Unlock related logic and state. */
 class NfcUnlockManager {
     private static final String TAG = "NfcUnlockManager";
 
@@ -20,7 +17,6 @@ class NfcUnlockManager {
     private static class UnlockHandlerWrapper {
         final INfcUnlockHandler mUnlockHandler;
         final int mPollMask;
-
 
         private UnlockHandlerWrapper(INfcUnlockHandler unlockHandler, int pollMask) {
             mUnlockHandler = unlockHandler;
@@ -32,14 +28,13 @@ class NfcUnlockManager {
         return Singleton.INSTANCE;
     }
 
-
     synchronized int addUnlockHandler(INfcUnlockHandler unlockHandler, int pollMask) {
         if (mUnlockHandlers.containsKey(unlockHandler.asBinder())) {
             return mLockscreenPollMask;
         }
 
-        mUnlockHandlers.put(unlockHandler.asBinder(),
-                new UnlockHandlerWrapper(unlockHandler, pollMask));
+        mUnlockHandlers.put(
+                unlockHandler.asBinder(), new UnlockHandlerWrapper(unlockHandler, pollMask));
         return (mLockscreenPollMask |= pollMask);
     }
 
@@ -96,4 +91,3 @@ class NfcUnlockManager {
         mLockscreenPollMask = 0;
     }
 }
-

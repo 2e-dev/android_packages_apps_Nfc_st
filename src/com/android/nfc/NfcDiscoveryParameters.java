@@ -18,10 +18,7 @@ package com.android.nfc;
 
 import android.util.proto.ProtoOutputStream;
 
-/**
- * Parameters for enabling NFC tag discovery and polling,
- * and host card emulation.
- */
+/** Parameters for enabling NFC tag discovery and polling, and host card emulation. */
 public final class NfcDiscoveryParameters {
 
     public static class Builder {
@@ -63,10 +60,10 @@ public final class NfcDiscoveryParameters {
         }
 
         public NfcDiscoveryParameters build() {
-            if (mParameters.mEnableReaderMode &&
-                    (mParameters.mEnableLowPowerDiscovery || mParameters.mEnableP2p)) {
-                throw new IllegalStateException("Can't enable LPTD/P2P and reader mode " +
-                        "simultaneously");
+            if (mParameters.mEnableReaderMode
+                    && (mParameters.mEnableLowPowerDiscovery || mParameters.mEnableP2p)) {
+                throw new IllegalStateException(
+                        "Can't enable LPTD/P2P and reader mode " + "simultaneously");
             }
             return mParameters;
         }
@@ -117,10 +114,10 @@ public final class NfcDiscoveryParameters {
             return false;
         }
         NfcDiscoveryParameters params = (NfcDiscoveryParameters) obj;
-        return mTechMask == params.mTechMask &&
-                (mEnableLowPowerDiscovery == params.mEnableLowPowerDiscovery) &&
-                (mEnableReaderMode == params.mEnableReaderMode) &&
-                (mEnableHostRouting == params.mEnableHostRouting)
+        return mTechMask == params.mTechMask
+                && (mEnableLowPowerDiscovery == params.mEnableLowPowerDiscovery)
+                && (mEnableReaderMode == params.mEnableReaderMode)
+                && (mEnableHostRouting == params.mEnableHostRouting)
                 && (mEnableP2p == params.mEnableP2p);
     }
 
@@ -130,7 +127,7 @@ public final class NfcDiscoveryParameters {
         if (mTechMask == NFC_POLL_DEFAULT) {
             sb.append("mTechMask: default\n");
         } else {
-            sb.append("mTechMask: " + Integer.toString(mTechMask) + "\n");
+            sb.append("mTechMask: " + Integer.toHexString(mTechMask) + "\n");
         }
         sb.append("mEnableLPD: " + Boolean.toString(mEnableLowPowerDiscovery) + "\n");
         sb.append("mEnableReader: " + Boolean.toString(mEnableReaderMode) + "\n");

@@ -33,9 +33,7 @@ public class BeamTransferRecord implements Parcelable {
     // Data link specific fields
     public BluetoothDevice remoteDevice;
 
-
-    private BeamTransferRecord(BluetoothDevice remoteDevice,
-                               boolean remoteActivating, Uri[] uris) {
+    private BeamTransferRecord(BluetoothDevice remoteDevice, boolean remoteActivating, Uri[] uris) {
         this.id = 0;
         this.remoteDevice = remoteDevice;
         this.remoteActivating = remoteActivating;
@@ -45,40 +43,37 @@ public class BeamTransferRecord implements Parcelable {
     }
 
     public static final BeamTransferRecord forBluetoothDevice(
-            BluetoothDevice remoteDevice, boolean remoteActivating,
-            Uri[] uris) {
-       return new BeamTransferRecord(remoteDevice, remoteActivating, uris);
+            BluetoothDevice remoteDevice, boolean remoteActivating, Uri[] uris) {
+        return new BeamTransferRecord(remoteDevice, remoteActivating, uris);
     }
 
-    public static final Parcelable.Creator<BeamTransferRecord> CREATOR
-            = new Parcelable.Creator<BeamTransferRecord>() {
-        public BeamTransferRecord createFromParcel(Parcel in) {
-            int deviceType = in.readInt();
+    public static final Parcelable.Creator<BeamTransferRecord> CREATOR =
+            new Parcelable.Creator<BeamTransferRecord>() {
+                public BeamTransferRecord createFromParcel(Parcel in) {
+                    int deviceType = in.readInt();
 
-            if (deviceType != DATA_LINK_TYPE_BLUETOOTH) {
-                // only support BLUETOOTH
-                return null;
-            }
+                    if (deviceType != DATA_LINK_TYPE_BLUETOOTH) {
+                        // only support BLUETOOTH
+                        return null;
+                    }
 
-            BluetoothDevice remoteDevice = in.readParcelable(getClass().getClassLoader());
-            boolean remoteActivating = (in.readInt() == 1);
-            int numUris = in.readInt();
-            Uri[] uris = null;
-            if (numUris > 0) {
-                uris = new Uri[numUris];
-                in.readTypedArray(uris, Uri.CREATOR);
-            }
+                    BluetoothDevice remoteDevice = in.readParcelable(getClass().getClassLoader());
+                    boolean remoteActivating = (in.readInt() == 1);
+                    int numUris = in.readInt();
+                    Uri[] uris = null;
+                    if (numUris > 0) {
+                        uris = new Uri[numUris];
+                        in.readTypedArray(uris, Uri.CREATOR);
+                    }
 
-            return new BeamTransferRecord(remoteDevice,
-                    remoteActivating, uris);
+                    return new BeamTransferRecord(remoteDevice, remoteActivating, uris);
+                }
 
-        }
-
-        @Override
-        public BeamTransferRecord[] newArray(int size) {
-            return new BeamTransferRecord[size];
-        }
-    };
+                @Override
+                public BeamTransferRecord[] newArray(int size) {
+                    return new BeamTransferRecord[size];
+                }
+            };
 
     @Override
     public int describeContents() {

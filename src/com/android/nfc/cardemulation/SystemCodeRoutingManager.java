@@ -18,10 +18,8 @@ package com.android.nfc.cardemulation;
 
 import android.util.Log;
 import android.util.proto.ProtoOutputStream;
-
 import com.android.nfc.NfcService;
 import com.android.nfc.cardemulation.RegisteredT3tIdentifiersCache.T3tIdentifier;
-
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -30,12 +28,11 @@ import java.util.List;
 public class SystemCodeRoutingManager {
     static final String TAG = "SystemCodeRoutingManager";
 
-    static final boolean DBG = false;
+    static final boolean DBG = true;
 
     final Object mLock = new Object();
 
-    List<T3tIdentifier> mConfiguredT3tIdentifiers =
-            new ArrayList<T3tIdentifier>();
+    List<T3tIdentifier> mConfiguredT3tIdentifiers = new ArrayList<T3tIdentifier>();
 
     public boolean configureRouting(List<T3tIdentifier> t3tIdentifiers) {
         if (DBG) Log.d(TAG, "configureRouting");
@@ -59,41 +56,52 @@ public class SystemCodeRoutingManager {
             // Update internal structures
             for (T3tIdentifier t3tIdentifier : toBeRemoved) {
                 if (DBG) Log.d(TAG, "deregisterNfcFSystemCodeonDh:");
-                NfcService.getInstance().deregisterT3tIdentifier(
-                        t3tIdentifier.systemCode, t3tIdentifier.nfcid2, t3tIdentifier.t3tPmm);
+                NfcService.getInstance()
+                        .deregisterT3tIdentifier(
+                                t3tIdentifier.systemCode,
+                                t3tIdentifier.nfcid2,
+                                t3tIdentifier.t3tPmm);
             }
             for (T3tIdentifier t3tIdentifier : toBeAdded) {
                 if (DBG) Log.d(TAG, "registerNfcFSystemCodeonDh:");
-                NfcService.getInstance().registerT3tIdentifier(
-                        t3tIdentifier.systemCode, t3tIdentifier.nfcid2 , t3tIdentifier.t3tPmm);
+                NfcService.getInstance()
+                        .registerT3tIdentifier(
+                                t3tIdentifier.systemCode,
+                                t3tIdentifier.nfcid2,
+                                t3tIdentifier.t3tPmm);
             }
             if (DBG) {
-                Log.d(TAG, "(Before) mConfiguredT3tIdentifiers: size=" +
-                        mConfiguredT3tIdentifiers.size());
+                Log.d(
+                        TAG,
+                        "(Before) mConfiguredT3tIdentifiers: size="
+                                + mConfiguredT3tIdentifiers.size());
                 for (T3tIdentifier t3tIdentifier : mConfiguredT3tIdentifiers) {
-                    Log.d(TAG, "    " + t3tIdentifier.systemCode +
-                            "/" + t3tIdentifier.t3tPmm);
+                    Log.d(TAG, "    " + t3tIdentifier.systemCode + "/" + t3tIdentifier.t3tPmm);
                 }
-                Log.d(TAG, "(After) mConfiguredT3tIdentifiers: size=" +
-                        t3tIdentifiers.size());
+                Log.d(TAG, "(After) mConfiguredT3tIdentifiers: size=" + t3tIdentifiers.size());
                 for (T3tIdentifier t3tIdentifier : t3tIdentifiers) {
-                    Log.d(TAG, "    " + t3tIdentifier.systemCode +
-                            "/" + t3tIdentifier.nfcid2 +
-                            "/" + t3tIdentifier.t3tPmm);
+                    Log.d(
+                            TAG,
+                            "    "
+                                    + t3tIdentifier.systemCode
+                                    + "/"
+                                    + t3tIdentifier.nfcid2
+                                    + "/"
+                                    + t3tIdentifier.t3tPmm);
                 }
             }
             mConfiguredT3tIdentifiers = t3tIdentifiers;
         }
 
         // And finally commit the routing
-        NfcService.getInstance().commitRouting();
+        //        NfcService.getInstance().commitRouting();
 
         return true;
     }
 
     /**
-     * This notifies that the SystemCode routing table in the controller
-     * has been cleared (usually due to NFC being turned off).
+     * This notifies that the SystemCode routing table in the controller has been cleared (usually
+     * due to NFC being turned off).
      */
     public void onNfccRoutingTableCleared() {
         // The routing table in the controller was cleared
@@ -109,8 +117,7 @@ public class SystemCodeRoutingManager {
         pw.println("HCE-F routing table:");
         synchronized (mLock) {
             for (T3tIdentifier t3tIdentifier : mConfiguredT3tIdentifiers) {
-                pw.println("    " + t3tIdentifier.systemCode +
-                        "/" + t3tIdentifier.nfcid2);
+                pw.println("    " + t3tIdentifier.systemCode + "/" + t3tIdentifier.nfcid2);
             }
         }
     }
@@ -118,20 +125,20 @@ public class SystemCodeRoutingManager {
     /**
      * Dump debugging information as a SystemCodeRoutingManagerProto
      *
-     * Note:
-     * See proto definition in frameworks/base/core/proto/android/nfc/card_emulation.proto
+     * <p>Note: See proto definition in frameworks/base/core/proto/android/nfc/card_emulation.proto
      * When writing a nested message, must call {@link ProtoOutputStream#start(long)} before and
-     * {@link ProtoOutputStream#end(long)} after.
-     * Never reuse a proto field number. When removing a field, mark it as reserved.
+     * {@link ProtoOutputStream#end(long)} after. Never reuse a proto field number. When removing a
+     * field, mark it as reserved.
      */
     void dumpDebug(ProtoOutputStream proto) {
         synchronized (mLock) {
             for (T3tIdentifier t3tIdentifier : mConfiguredT3tIdentifiers) {
                 long token = proto.start(SystemCodeRoutingManagerProto.T3T_IDENTIFIERS);
-                proto.write(SystemCodeRoutingManagerProto.T3tIdentifier.SYSTEM_CODE,
+                proto.write(
+                        SystemCodeRoutingManagerProto.T3tIdentifier.SYSTEM_CODE,
                         t3tIdentifier.systemCode);
-                proto.write(SystemCodeRoutingManagerProto.T3tIdentifier.NFCID2,
-                        t3tIdentifier.nfcid2);
+                proto.write(
+                        SystemCodeRoutingManagerProto.T3tIdentifier.NFCID2, t3tIdentifier.nfcid2);
                 proto.end(token);
             }
         }

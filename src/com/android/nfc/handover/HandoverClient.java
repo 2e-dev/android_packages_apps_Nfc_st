@@ -18,11 +18,9 @@ package com.android.nfc.handover;
 import android.nfc.FormatException;
 import android.nfc.NdefMessage;
 import android.util.Log;
-
+import com.android.nfc.DeviceHost.LlcpSocket;
 import com.android.nfc.LlcpException;
 import com.android.nfc.NfcService;
-import com.android.nfc.DeviceHost.LlcpSocket;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -60,8 +58,8 @@ public final class HandoverClient {
             throw new IOException("Could not create socket");
         }
         try {
-            if (DBG) Log.d(TAG, "about to connect to service " +
-                    HandoverServer.HANDOVER_SERVICE_NAME);
+            if (DBG)
+                Log.d(TAG, "about to connect to service " + HandoverServer.HANDOVER_SERVICE_NAME);
             sock.connectToService(HandoverServer.HANDOVER_SERVICE_NAME);
         } catch (IOException e) {
             if (sock != null) {
@@ -95,6 +93,7 @@ public final class HandoverClient {
             mState = DISCONNECTED;
         }
     }
+
     public NdefMessage sendHandoverRequest(NdefMessage msg) throws IOException {
         if (msg == null) return null;
 
@@ -114,7 +113,7 @@ public final class HandoverClient {
             if (DBG) Log.d(TAG, "about to send a " + buffer.length + " byte message");
             while (offset < buffer.length) {
                 int length = Math.min(buffer.length - offset, remoteMiu);
-                byte[] tmpBuffer = Arrays.copyOfRange(buffer, offset, offset+length);
+                byte[] tmpBuffer = Arrays.copyOfRange(buffer, offset, offset + length);
                 if (DBG) Log.d(TAG, "about to send a " + length + " byte packet");
                 sock.send(tmpBuffer);
                 offset += length;

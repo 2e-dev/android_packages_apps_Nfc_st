@@ -31,7 +31,6 @@ import android.os.RemoteException;
 import android.os.UserHandle;
 import android.util.Log;
 import android.util.proto.ProtoOutputStream;
-
 import com.android.nfc.NfcService;
 import com.android.nfc.NfcStatsLog;
 import java.io.FileDescriptor;
@@ -53,7 +52,7 @@ public class HostNfcFEmulationManager {
 
     final Context mContext;
     final RegisteredT3tIdentifiersCache mT3tIdentifiersCache;
-    final Messenger mMessenger = new Messenger (new MessageHandler());
+    final Messenger mMessenger = new Messenger(new MessageHandler());
     final Object mLock;
 
     // All variables below protected by mLock
@@ -73,8 +72,8 @@ public class HostNfcFEmulationManager {
     int mState;
     byte[] mPendingPacket;
 
-    public HostNfcFEmulationManager(Context context,
-            RegisteredT3tIdentifiersCache t3tIdentifiersCache) {
+    public HostNfcFEmulationManager(
+            Context context, RegisteredT3tIdentifiersCache t3tIdentifiersCache) {
         mContext = context;
         mLock = new Object();
         mEnabledFgServiceName = null;
@@ -114,37 +113,43 @@ public class HostNfcFEmulationManager {
                 resolvedServiceName = mActiveServiceName;
             }
             // Check if resolvedService is actually currently enabled
-            if (mEnabledFgServiceName == null ||
-                    !mEnabledFgServiceName.equals(resolvedServiceName)) {
+            if (mEnabledFgServiceName == null
+                    || !mEnabledFgServiceName.equals(resolvedServiceName)) {
                 return;
             }
-            if (DBG) Log.d(TAG, "resolvedServiceName: " + resolvedServiceName.toString() +
-                    "mState: " + String.valueOf(mState));
+            if (DBG)
+                Log.d(
+                        TAG,
+                        "resolvedServiceName: "
+                                + resolvedServiceName.toString()
+                                + "mState: "
+                                + String.valueOf(mState));
             switch (mState) {
-            case STATE_IDLE:
-                Messenger existingService = bindServiceIfNeededLocked(resolvedServiceName);
-                if (existingService != null) {
-                    Log.d(TAG, "Binding to existing service");
-                    mState = STATE_XFER;
-                    sendDataToServiceLocked(existingService, data);
-                } else {
-                    // Waiting for service to be bound
-                    Log.d(TAG, "Waiting for new service.");
-                    // Queue packet to be used
-                    mPendingPacket = data;
-                    mState = STATE_W4_SERVICE;
-                }
-                NfcStatsLog.write(NfcStatsLog.NFC_CARDEMULATION_OCCURRED,
-                               NfcStatsLog.NFC_CARDEMULATION_OCCURRED__CATEGORY__HCE_PAYMENT,
-                               "HCEF");
-                break;
-            case STATE_W4_SERVICE:
-                Log.d(TAG, "Unexpected packet in STATE_W4_SERVICE");
-                break;
-            case STATE_XFER:
-                // Regular packet data
-                sendDataToServiceLocked(mActiveService, data);
-                break;
+                case STATE_IDLE:
+                    Messenger existingService = bindServiceIfNeededLocked(resolvedServiceName);
+                    if (existingService != null) {
+                        Log.d(TAG, "Binding to existing service");
+                        mState = STATE_XFER;
+                        sendDataToServiceLocked(existingService, data);
+                    } else {
+                        // Waiting for service to be bound
+                        Log.d(TAG, "Waiting for new service.");
+                        // Queue packet to be used
+                        mPendingPacket = data;
+                        mState = STATE_W4_SERVICE;
+                    }
+                    NfcStatsLog.write(
+                            NfcStatsLog.NFC_CARDEMULATION_OCCURRED,
+                            NfcStatsLog.NFC_CARDEMULATION_OCCURRED__CATEGORY__HCE_PAYMENT,
+                            "HCEF");
+                    break;
+                case STATE_W4_SERVICE:
+                    Log.d(TAG, "Unexpected packet in STATE_W4_SERVICE");
+                    break;
+                case STATE_XFER:
+                    // Regular packet data
+                    sendDataToServiceLocked(mActiveService, data);
+                    break;
             }
         }
     }
@@ -185,10 +190,11 @@ public class HostNfcFEmulationManager {
     void sendDataToServiceLocked(Messenger service, byte[] data) {
         if (DBG) Log.d(TAG, "sendDataToServiceLocked");
         if (DBG) {
-            Log.d(TAG, "service: " +
-                    (service != null ? service.toString() : "null"));
-            Log.d(TAG, "mActiveService: " +
-                    (mActiveService != null ? mActiveService.toString() : "null"));
+            Log.d(TAG, "service: " + (service != null ? service.toString() : "null"));
+            Log.d(
+                    TAG,
+                    "mActiveService: "
+                            + (mActiveService != null ? mActiveService.toString() : "null"));
         }
         if (service != mActiveService) {
             sendDeactivateToActiveServiceLocked(HostNfcFService.DEACTIVATION_LINK_LOSS);
@@ -231,8 +237,8 @@ public class HostNfcFEmulationManager {
             unbindServiceIfNeededLocked();
             Intent bindIntent = new Intent(HostNfcFService.SERVICE_INTERFACE);
             bindIntent.setComponent(service);
-            if (mContext.bindServiceAsUser(bindIntent, mConnection,
-                    Context.BIND_AUTO_CREATE, UserHandle.CURRENT)) {
+            if (mContext.bindServiceAsUser(
+                    bindIntent, mConnection, Context.BIND_AUTO_CREATE, UserHandle.CURRENT)) {
             } else {
                 Log.e(TAG, "Could not bind service.");
             }
@@ -261,38 +267,39 @@ public class HostNfcFEmulationManager {
         return bytesToString(data, nfcid2Offset, NFCID2_LENGTH);
     }
 
-    private ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            synchronized (mLock) {
-                mService = new Messenger(service);
-                mServiceBound = true;
-                mServiceName = name;
-                Log.d(TAG, "Service bound");
-                mState = STATE_XFER;
-                // Send pending packet
-                if (mPendingPacket != null) {
-                    sendDataToServiceLocked(mService, mPendingPacket);
-                    mPendingPacket = null;
+    private ServiceConnection mConnection =
+            new ServiceConnection() {
+                @Override
+                public void onServiceConnected(ComponentName name, IBinder service) {
+                    synchronized (mLock) {
+                        mService = new Messenger(service);
+                        mServiceBound = true;
+                        mServiceName = name;
+                        Log.d(TAG, "Service bound");
+                        mState = STATE_XFER;
+                        // Send pending packet
+                        if (mPendingPacket != null) {
+                            sendDataToServiceLocked(mService, mPendingPacket);
+                            mPendingPacket = null;
+                        }
+                    }
                 }
-            }
-        }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            synchronized (mLock) {
-                Log.d(TAG, "Service unbound");
-                mService = null;
-                mServiceBound = false;
-                mServiceName = null;
-            }
-        }
-    };
+                @Override
+                public void onServiceDisconnected(ComponentName name) {
+                    synchronized (mLock) {
+                        Log.d(TAG, "Service unbound");
+                        mService = null;
+                        mServiceBound = false;
+                        mServiceName = null;
+                    }
+                }
+            };
 
     class MessageHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            synchronized(mLock) {
+            synchronized (mLock) {
                 if (mActiveService == null) {
                     Log.d(TAG, "Dropping service response message; service no longer active.");
                     return;
@@ -319,7 +326,7 @@ public class HostNfcFEmulationManager {
                     return;
                 }
                 int state;
-                synchronized(mLock) {
+                synchronized (mLock) {
                     state = mState;
                 }
                 if (state == STATE_XFER) {
@@ -334,7 +341,9 @@ public class HostNfcFEmulationManager {
     }
 
     static String bytesToString(byte[] bytes, int offset, int length) {
-        final char[] hexChars = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+        final char[] hexChars = {
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+        };
         char[] chars = new char[length * 2];
         int byteValue;
         for (int j = 0; j < length; j++) {
@@ -375,11 +384,10 @@ public class HostNfcFEmulationManager {
     /**
      * Dump debugging information as a HostNfcFEmulationManagerProto
      *
-     * Note:
-     * See proto definition in frameworks/base/core/proto/android/nfc/card_emulation.proto
+     * <p>Note: See proto definition in frameworks/base/core/proto/android/nfc/card_emulation.proto
      * When writing a nested message, must call {@link ProtoOutputStream#start(long)} before and
-     * {@link ProtoOutputStream#end(long)} after.
-     * Never reuse a proto field number. When removing a field, mark it as reserved.
+     * {@link ProtoOutputStream#end(long)} after. Never reuse a proto field number. When removing a
+     * field, mark it as reserved.
      */
     void dumpDebug(ProtoOutputStream proto) {
         if (mServiceBound) {

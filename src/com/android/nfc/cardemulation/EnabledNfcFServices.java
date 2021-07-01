@@ -15,11 +15,6 @@
  */
 package com.android.nfc.cardemulation;
 
-import java.io.FileDescriptor;
-import java.io.PrintWriter;
-
-import com.android.nfc.ForegroundUtils;
-
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -28,6 +23,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.util.proto.ProtoOutputStream;
+import com.android.nfc.ForegroundUtils;
+import java.io.FileDescriptor;
+import java.io.PrintWriter;
 
 public class EnabledNfcFServices implements com.android.nfc.ForegroundUtils.Callback {
     static final String TAG = "EnabledNfcFCardEmulationServices";
@@ -53,9 +51,11 @@ public class EnabledNfcFServices implements com.android.nfc.ForegroundUtils.Call
         void onEnabledForegroundNfcFServiceChanged(ComponentName service);
     }
 
-    public EnabledNfcFServices(Context context,
+    public EnabledNfcFServices(
+            Context context,
             RegisteredNfcFServicesCache nfcFServiceCache,
-            RegisteredT3tIdentifiersCache t3tIdentifiersCache, Callback callback) {
+            RegisteredT3tIdentifiersCache t3tIdentifiersCache,
+            Callback callback) {
         if (DBG) Log.d(TAG, "EnabledNfcFServices");
         mContext = context;
         mNfcFServiceCache = nfcFServiceCache;
@@ -75,12 +75,12 @@ public class EnabledNfcFServices implements com.android.nfc.ForegroundUtils.Call
             }
             mComputeFgRequested = false;
             foregroundRequested = mForegroundRequested;
-            if (mForegroundRequested != null &&
-                    (mForegroundComponent == null ||
-                    !mForegroundRequested.equals(mForegroundComponent))) {
+            if (mForegroundRequested != null
+                    && (mForegroundComponent == null
+                            || !mForegroundRequested.equals(mForegroundComponent))) {
                 mForegroundComponent = mForegroundRequested;
                 changed = true;
-            } else if (mForegroundRequested == null && mForegroundComponent != null){
+            } else if (mForegroundRequested == null && mForegroundComponent != null) {
                 mForegroundComponent = mForegroundRequested;
                 changed = true;
             }
@@ -112,14 +112,14 @@ public class EnabledNfcFServices implements com.android.nfc.ForegroundUtils.Call
         if (DBG) Log.d(TAG, "registerEnabledForegroundService");
         boolean success = false;
         synchronized (mLock) {
-            NfcFServiceInfo serviceInfo = mNfcFServiceCache.getService(
-                    ActivityManager.getCurrentUser(), service);
+            NfcFServiceInfo serviceInfo =
+                    mNfcFServiceCache.getService(ActivityManager.getCurrentUser(), service);
             if (serviceInfo == null) {
                 return false;
             } else {
-                if (serviceInfo.getSystemCode().equalsIgnoreCase("NULL") ||
-                        serviceInfo.getNfcid2().equalsIgnoreCase("NULL") ||
-                        serviceInfo.getT3tPmm().equalsIgnoreCase("NULL")) {
+                if (serviceInfo.getSystemCode().equalsIgnoreCase("NULL")
+                        || serviceInfo.getNfcid2().equalsIgnoreCase("NULL")
+                        || serviceInfo.getT3tPmm().equalsIgnoreCase("NULL")) {
                     return false;
                 }
             }
@@ -216,17 +216,15 @@ public class EnabledNfcFServices implements com.android.nfc.ForegroundUtils.Call
         }
     }
 
-    public void dump(FileDescriptor fd, PrintWriter pw, String[] args) {
-    }
+    public void dump(FileDescriptor fd, PrintWriter pw, String[] args) {}
 
     /**
      * Dump debugging information as a EnabledNfcFServicesProto
      *
-     * Note:
-     * See proto definition in frameworks/base/core/proto/android/nfc/card_emulation.proto
+     * <p>Note: See proto definition in frameworks/base/core/proto/android/nfc/card_emulation.proto
      * When writing a nested message, must call {@link ProtoOutputStream#start(long)} before and
-     * {@link ProtoOutputStream#end(long)} after.
-     * Never reuse a proto field number. When removing a field, mark it as reserved.
+     * {@link ProtoOutputStream#end(long)} after. Never reuse a proto field number. When removing a
+     * field, mark it as reserved.
      */
     void dumpDebug(ProtoOutputStream proto) {
         if (mForegroundComponent != null) {

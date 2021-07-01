@@ -17,12 +17,11 @@
 package com.android.nfc.dhimpl;
 
 import com.android.nfc.DeviceHost;
-
 import java.io.IOException;
 
 /**
- * LlcpClientSocket represents a LLCP Connection-Oriented client to be used in a
- * connection-oriented communication
+ * LlcpClientSocket represents a LLCP Connection-Oriented client to be used in a connection-oriented
+ * communication
  */
 public class NativeLlcpSocket implements DeviceHost.LlcpSocket {
     private int mHandle;
@@ -30,9 +29,10 @@ public class NativeLlcpSocket implements DeviceHost.LlcpSocket {
     private int mLocalMiu;
     private int mLocalRw;
 
-    public NativeLlcpSocket(){ }
+    public NativeLlcpSocket() {}
 
     private native boolean doConnect(int nSap);
+
     @Override
     public void connectToSap(int sap) throws IOException {
         if (!doConnect(sap)) {
@@ -41,6 +41,7 @@ public class NativeLlcpSocket implements DeviceHost.LlcpSocket {
     }
 
     private native boolean doConnectBy(String sn);
+
     @Override
     public void connectToService(String serviceName) throws IOException {
         if (!doConnectBy(serviceName)) {
@@ -49,6 +50,7 @@ public class NativeLlcpSocket implements DeviceHost.LlcpSocket {
     }
 
     private native boolean doClose();
+
     @Override
     public void close() throws IOException {
         if (!doClose()) {
@@ -57,6 +59,7 @@ public class NativeLlcpSocket implements DeviceHost.LlcpSocket {
     }
 
     private native boolean doSend(byte[] data);
+
     @Override
     public void send(byte[] data) throws IOException {
         if (!doSend(data)) {
@@ -65,6 +68,7 @@ public class NativeLlcpSocket implements DeviceHost.LlcpSocket {
     }
 
     private native int doReceive(byte[] recvBuff);
+
     @Override
     public int receive(byte[] recvBuff) throws IOException {
         int receiveLength = doReceive(recvBuff);
@@ -75,25 +79,31 @@ public class NativeLlcpSocket implements DeviceHost.LlcpSocket {
     }
 
     private native int doGetRemoteSocketMiu();
+
     @Override
-    public int getRemoteMiu() { return doGetRemoteSocketMiu(); }
+    public int getRemoteMiu() {
+        return doGetRemoteSocketMiu();
+    }
 
     private native int doGetRemoteSocketRw();
-    @Override
-    public int getRemoteRw() { return doGetRemoteSocketRw(); }
 
     @Override
-    public int getLocalSap(){
+    public int getRemoteRw() {
+        return doGetRemoteSocketRw();
+    }
+
+    @Override
+    public int getLocalSap() {
         return mSap;
     }
 
     @Override
-    public int getLocalMiu(){
+    public int getLocalMiu() {
         return mLocalMiu;
     }
 
     @Override
-    public int getLocalRw(){
+    public int getLocalRw() {
         return mLocalRw;
     }
 }

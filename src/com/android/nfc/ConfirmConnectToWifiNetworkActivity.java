@@ -33,15 +33,19 @@ public class ConfirmConnectToWifiNetworkActivity extends Activity
                 intent.getParcelableExtra(NfcWifiProtectedSetup.EXTRA_WIFI_CONFIG);
 
         String printableSsid = mCurrentWifiConfiguration.getPrintableSsid();
-        mAlertDialog = new AlertDialog.Builder(this, R.style.DialogAlertDayNight)
-                .setTitle(R.string.title_connect_to_network)
-                .setMessage(
-                        String.format(getResources().getString(R.string.prompt_connect_to_network),
-                        printableSsid))
-                .setOnDismissListener(this)
-                .setNegativeButton(com.android.internal.R.string.cancel, null)
-                .setPositiveButton(R.string.wifi_connect, null)
-                .create();
+
+        mAlertDialog =
+                new AlertDialog.Builder(this, R.style.DialogAlertDayNight)
+                        .setTitle(R.string.title_connect_to_network)
+                        .setMessage(
+                                String.format(
+                                        getResources()
+                                                .getString(R.string.prompt_connect_to_network),
+                                        printableSsid))
+                        .setOnDismissListener(this)
+                        .setNegativeButton(com.android.internal.R.string.cancel, null)
+                        .setPositiveButton(R.string.wifi_connect, null)
+                        .create();
 
         mEnableWifiInProgress = false;
         mHandler = new Handler();
@@ -57,7 +61,6 @@ public class ConfirmConnectToWifiNetworkActivity extends Activity
         mAlertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(this);
     }
 
-
     @Override
     public void onClick(View v) {
         WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
@@ -68,15 +71,17 @@ public class ConfirmConnectToWifiNetworkActivity extends Activity
             wifiManager.setWifiEnabled(true);
             mEnableWifiInProgress = true;
 
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (getAndClearEnableWifiInProgress()) {
-                        showFailToast();
-                        ConfirmConnectToWifiNetworkActivity.this.finish();
-                    }
-                }
-            }, ENABLE_WIFI_TIMEOUT_MILLIS);
+            mHandler.postDelayed(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            if (getAndClearEnableWifiInProgress()) {
+                                showFailToast();
+                                ConfirmConnectToWifiNetworkActivity.this.finish();
+                            }
+                        }
+                    },
+                    ENABLE_WIFI_TIMEOUT_MILLIS);
 
         } else {
             doConnect(wifiManager);
@@ -87,8 +92,11 @@ public class ConfirmConnectToWifiNetworkActivity extends Activity
 
     private boolean isChangeWifiStateGranted() {
         AppOpsManager appOps = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
-        int modeChangeWifiState = appOps.checkOpNoThrow(AppOpsManager.OP_CHANGE_WIFI_STATE,
-                                                        Binder.getCallingUid(), getPackageName());
+        int modeChangeWifiState =
+                appOps.checkOpNoThrow(
+                        AppOpsManager.OP_CHANGE_WIFI_STATE,
+                        Binder.getCallingUid(),
+                        getPackageName());
         return modeChangeWifiState == AppOpsManager.MODE_ALLOWED;
     }
 
@@ -100,12 +108,16 @@ public class ConfirmConnectToWifiNetworkActivity extends Activity
             showFailToast();
         } else {
 
-            wifiManager.connect(networkId,
+            wifiManager.connect(
+                    networkId,
                     new WifiManager.ActionListener() {
                         @Override
                         public void onSuccess() {
-                            Toast.makeText(ConfirmConnectToWifiNetworkActivity.this,
-                                    R.string.status_wifi_connected, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(
+                                            ConfirmConnectToWifiNetworkActivity.this,
+                                            R.string.status_wifi_connected,
+                                            Toast.LENGTH_SHORT)
+                                    .show();
                         }
 
                         @Override
@@ -117,10 +129,12 @@ public class ConfirmConnectToWifiNetworkActivity extends Activity
         finish();
     }
 
-
     private void showFailToast() {
-        Toast.makeText(ConfirmConnectToWifiNetworkActivity.this,
-                R.string.status_unable_to_connect, Toast.LENGTH_SHORT).show();
+        Toast.makeText(
+                        ConfirmConnectToWifiNetworkActivity.this,
+                        R.string.status_unable_to_connect,
+                        Toast.LENGTH_SHORT)
+                .show();
     }
 
     @Override
@@ -130,7 +144,6 @@ public class ConfirmConnectToWifiNetworkActivity extends Activity
         }
     }
 
-
     @Override
     protected void onDestroy() {
         mAlertDialog.dismiss();
@@ -138,28 +151,30 @@ public class ConfirmConnectToWifiNetworkActivity extends Activity
         super.onDestroy();
     }
 
-    private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (action.equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
-                int wifiState = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, 0);
-                if (mCurrentWifiConfiguration != null
-                        && wifiState == WifiManager.WIFI_STATE_ENABLED) {
-                    if (getAndClearEnableWifiInProgress()) {
-                        doConnect(
-                                (WifiManager) ConfirmConnectToWifiNetworkActivity.this
-                                        .getSystemService(Context.WIFI_SERVICE));
+    private final BroadcastReceiver mBroadcastReceiver =
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    String action = intent.getAction();
+                    if (action.equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
+                        int wifiState = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, 0);
+                        if (mCurrentWifiConfiguration != null
+                                && wifiState == WifiManager.WIFI_STATE_ENABLED) {
+                            if (getAndClearEnableWifiInProgress()) {
+                                doConnect(
+                                        (WifiManager)
+                                                ConfirmConnectToWifiNetworkActivity.this
+                                                        .getSystemService(Context.WIFI_SERVICE));
+                            }
+                        }
                     }
                 }
-            }
-        }
-    };
+            };
 
     private boolean getAndClearEnableWifiInProgress() {
         boolean enableWifiInProgress;
 
-        synchronized (this)  {
+        synchronized (this) {
             enableWifiInProgress = mEnableWifiInProgress;
             mEnableWifiInProgress = false;
         }

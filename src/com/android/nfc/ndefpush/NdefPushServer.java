@@ -16,16 +16,14 @@
 
 package com.android.nfc.ndefpush;
 
-import com.android.nfc.DeviceHost.LlcpServerSocket;
-import com.android.nfc.DeviceHost.LlcpSocket;
-import com.android.nfc.LlcpException;
-import com.android.nfc.NfcService;
-
 import android.nfc.FormatException;
 import android.nfc.NdefMessage;
 import android.nfc.NfcAdapter;
 import android.util.Log;
-
+import com.android.nfc.DeviceHost.LlcpServerSocket;
+import com.android.nfc.DeviceHost.LlcpSocket;
+import com.android.nfc.LlcpException;
+import com.android.nfc.NfcService;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -78,7 +76,7 @@ public class NdefPushServer {
                 boolean connectionBroken = false;
 
                 // Get raw data from remote server
-                while(!connectionBroken) {
+                while (!connectionBroken) {
                     try {
                         size = mSock.receive(partial);
                         if (DBG) Log.d(TAG, "read " + size + " bytes");
@@ -131,8 +129,8 @@ public class NdefPushServer {
                 if (DBG) Log.d(TAG, "about create LLCP service socket");
                 try {
                     synchronized (NdefPushServer.this) {
-                        mServerSocket = mService.createLlcpServerSocket(mSap, SERVICE_NAME,
-                                MIU, 1, 1024);
+                        mServerSocket =
+                                mService.createLlcpServerSocket(mSap, SERVICE_NAME, MIU, 1, 1024);
                     }
                     if (mServerSocket == null) {
                         if (DBG) Log.d(TAG, "failed to create LLCP service socket");

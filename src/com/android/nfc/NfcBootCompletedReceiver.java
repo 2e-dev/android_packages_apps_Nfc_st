@@ -22,9 +22,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 
 /**
- * Boot completed receiver. used to disable the application if the device doesn't
- * support NFC when device boots.
- *
+ * Boot completed receiver. used to disable the application if the device doesn't support NFC when
+ * device boots.
  */
 public class NfcBootCompletedReceiver extends BroadcastReceiver {
     @Override
@@ -34,8 +33,10 @@ public class NfcBootCompletedReceiver extends BroadcastReceiver {
         if (Intent.ACTION_BOOT_COMPLETED.equals(action)) {
             PackageManager pm = context.getPackageManager();
             if (!pm.hasSystemFeature(PackageManager.FEATURE_NFC_ANY)) {
-                pm.setApplicationEnabledSetting(context.getPackageName(),
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED, 0);
+                pm.setApplicationEnabledSetting(
+                        context.getPackageName(),
+                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                        0);
             }
         }
     }

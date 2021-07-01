@@ -2,9 +2,7 @@ package com.android.nfc.beam;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -12,18 +10,15 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
-
-/**
- * @hide
- */
+/** @hide */
 public class BeamReceiveService extends Service implements BeamTransferManager.Callback {
     private static String TAG = "BeamReceiveService";
     private static boolean DBG = true;
 
-    public static final String EXTRA_BEAM_TRANSFER_RECORD
-            = "com.android.nfc.beam.EXTRA_BEAM_TRANSFER_RECORD";
-    public static final String EXTRA_BEAM_COMPLETE_CALLBACK
-            = "com.android.nfc.beam.TRANSFER_COMPLETE_CALLBACK";
+    public static final String EXTRA_BEAM_TRANSFER_RECORD =
+            "com.android.nfc.beam.EXTRA_BEAM_TRANSFER_RECORD";
+    public static final String EXTRA_BEAM_COMPLETE_CALLBACK =
+            "com.android.nfc.beam.TRANSFER_COMPLETE_CALLBACK";
 
     private BeamStatusReceiver mBeamStatusReceiver;
     private boolean mBluetoothEnabledByNfc;
@@ -42,8 +37,9 @@ public class BeamReceiveService extends Service implements BeamTransferManager.C
         mStartId = startId;
 
         BeamTransferRecord transferRecord;
-        if (intent == null ||
-                (transferRecord = intent.getParcelableExtra(EXTRA_BEAM_TRANSFER_RECORD)) == null) {
+        if (intent == null
+                || (transferRecord = intent.getParcelableExtra(EXTRA_BEAM_TRANSFER_RECORD))
+                        == null) {
             if (DBG) Log.e(TAG, "No transfer record provided. Stopping.");
             stopSelf(startId);
             return START_NOT_STICKY;
@@ -85,16 +81,18 @@ public class BeamReceiveService extends Service implements BeamTransferManager.C
                 return false;
             }
             mBluetoothEnabledByNfc = true;
-            if (DBG) Log.d(TAG, "Queueing out transfer "
-                    + Integer.toString(transferRecord.id));
+            if (DBG) Log.d(TAG, "Queueing out transfer " + Integer.toString(transferRecord.id));
         }
 
         mTransferManager = new BeamTransferManager(this, this, transferRecord, true);
 
         // register Beam status receiver
         mBeamStatusReceiver = new BeamStatusReceiver(this, mTransferManager);
-        registerReceiver(mBeamStatusReceiver, mBeamStatusReceiver.getIntentFilter(),
-                BeamStatusReceiver.BEAM_STATUS_PERMISSION, new Handler());
+        registerReceiver(
+                mBeamStatusReceiver,
+                mBeamStatusReceiver.getIntentFilter(),
+                BeamStatusReceiver.BEAM_STATUS_PERMISSION,
+                new Handler());
 
         mTransferManager.start();
         mTransferManager.updateNotification();
@@ -117,8 +115,8 @@ public class BeamReceiveService extends Service implements BeamTransferManager.C
     public void onTransferComplete(BeamTransferManager transfer, boolean success) {
         // Play success sound
         if (!success) {
-            if (DBG) Log.d(TAG, "Transfer failed, final state: " +
-                    Integer.toString(transfer.mState));
+            if (DBG)
+                Log.d(TAG, "Transfer failed, final state: " + Integer.toString(transfer.mState));
         }
 
         if (mBluetoothEnabledByNfc) {

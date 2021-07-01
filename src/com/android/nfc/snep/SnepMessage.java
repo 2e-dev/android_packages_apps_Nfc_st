@@ -21,7 +21,6 @@ import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import com.android.nfc.NfcService;
 import com.android.nfc.sneptest.DtaSnepClient;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -48,15 +47,84 @@ public final class SnepMessage {
     public static final byte RESPONSE_UNSUPPORTED_VERSION = (byte) 0xE1;
     public static final byte RESPONSE_REJECT = (byte) 0xFF;
 
-    private static final byte[] NDEF_SHORT_TEST_RECORD = new byte[]{(byte)0xD1,(byte)0x01,(byte)0x1E,(byte)0x54,(byte)0x02,(byte)0x6C,(byte)0x61, // NDEF Header
-            (byte)0x4C,(byte)0x6F,(byte)0x72,(byte)0x65,(byte)0x6D,(byte)0x20,(byte)0x69,(byte)0x70,(byte)0x73,(byte)0x75, // Payload
-            (byte)0x6D,(byte)0x20,(byte)0x64,(byte)0x6F,(byte)0x6C,(byte)0x6F,(byte)0x72,(byte)0x20,(byte)0x73,(byte)0x69,
-            (byte)0x74,(byte)0x20,(byte)0x61,(byte)0x6D,(byte)0x65,(byte)0x74,(byte)0x2E};
+    private static final byte[] NDEF_SHORT_TEST_RECORD =
+            new byte[] {
+                (byte) 0xD1,
+                (byte) 0x01,
+                (byte) 0x1E,
+                (byte) 0x54,
+                (byte) 0x02,
+                (byte) 0x6C,
+                (byte) 0x61, // NDEF Header
+                (byte) 0x4C,
+                (byte) 0x6F,
+                (byte) 0x72,
+                (byte) 0x65,
+                (byte) 0x6D,
+                (byte) 0x20,
+                (byte) 0x69,
+                (byte) 0x70,
+                (byte) 0x73,
+                (byte) 0x75, // Payload
+                (byte) 0x6D,
+                (byte) 0x20,
+                (byte) 0x64,
+                (byte) 0x6F,
+                (byte) 0x6C,
+                (byte) 0x6F,
+                (byte) 0x72,
+                (byte) 0x20,
+                (byte) 0x73,
+                (byte) 0x69,
+                (byte) 0x74,
+                (byte) 0x20,
+                (byte) 0x61,
+                (byte) 0x6D,
+                (byte) 0x65,
+                (byte) 0x74,
+                (byte) 0x2E
+            };
 
-    private static final byte[] NDEF_TEST_RECORD = new byte[]{(byte)0xC1,(byte)0x01,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x1E,(byte)0x54,(byte)0x02,(byte)0x6C,(byte)0x61, // NDEF Header
-            (byte)0x4C,(byte)0x6F,(byte)0x72,(byte)0x65,(byte)0x6D,(byte)0x20,(byte)0x69,(byte)0x70,(byte)0x73,(byte)0x75, // Payload
-            (byte)0x6D,(byte)0x20,(byte)0x64,(byte)0x6F,(byte)0x6C,(byte)0x6F,(byte)0x72,(byte)0x20,(byte)0x73,(byte)0x69,
-            (byte)0x74,(byte)0x20,(byte)0x61,(byte)0x6D,(byte)0x65,(byte)0x74,(byte)0x2E};
+    private static final byte[] NDEF_TEST_RECORD =
+            new byte[] {
+                (byte) 0xC1,
+                (byte) 0x01,
+                (byte) 0x00,
+                (byte) 0x00,
+                (byte) 0x00,
+                (byte) 0x1E,
+                (byte) 0x54,
+                (byte) 0x02,
+                (byte) 0x6C,
+                (byte) 0x61, // NDEF Header
+                (byte) 0x4C,
+                (byte) 0x6F,
+                (byte) 0x72,
+                (byte) 0x65,
+                (byte) 0x6D,
+                (byte) 0x20,
+                (byte) 0x69,
+                (byte) 0x70,
+                (byte) 0x73,
+                (byte) 0x75, // Payload
+                (byte) 0x6D,
+                (byte) 0x20,
+                (byte) 0x64,
+                (byte) 0x6F,
+                (byte) 0x6C,
+                (byte) 0x6F,
+                (byte) 0x72,
+                (byte) 0x20,
+                (byte) 0x73,
+                (byte) 0x69,
+                (byte) 0x74,
+                (byte) 0x20,
+                (byte) 0x61,
+                (byte) 0x6D,
+                (byte) 0x65,
+                (byte) 0x74,
+                (byte) 0x2E
+            };
 
     private static final int HEADER_LENGTH = 6;
     public static final int MAL_IUT = 0x0400;
@@ -68,8 +136,8 @@ public final class SnepMessage {
     private final NdefMessage mNdefMessage;
 
     public static SnepMessage getGetRequest(int acceptableLength, NdefMessage ndef) {
-        return new SnepMessage(VERSION, REQUEST_GET, 4 + ndef.toByteArray().length,
-                acceptableLength, ndef);
+        return new SnepMessage(
+                VERSION, REQUEST_GET, 4 + ndef.toByteArray().length, acceptableLength, ndef);
     }
 
     public static SnepMessage getPutRequest(NdefMessage ndef) {
@@ -93,14 +161,15 @@ public final class SnepMessage {
     }
 
     public static NdefMessage getLargeNdef() throws UnsupportedEncodingException {
-        String snepTestData2 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus at"
-                +" lorem nunc, ut venenatis quam. Etiam id dolor quam, at viverra dolor."
-                +" Phasellus eu lacus ligula, quis euismod erat. Sed feugiat, ligula at"
-                +" mollis aliquet, justo lacus condimentum eros, non tincidunt neque"
-                +" ipsum eu risus. Sed adipiscing dui euismod tellus ullamcorper ornare."
-                +" Phasellus mattis risus et lectus euismod eu fermentum sem cursus."
-                +" Phasellus tristique consectetur mauris eu porttitor. Sed lobortis"
-                +" porttitor orci.";
+        String snepTestData2 =
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus at"
+                        + " lorem nunc, ut venenatis quam. Etiam id dolor quam, at viverra dolor."
+                        + " Phasellus eu lacus ligula, quis euismod erat. Sed feugiat, ligula at"
+                        + " mollis aliquet, justo lacus condimentum eros, non tincidunt neque"
+                        + " ipsum eu risus. Sed adipiscing dui euismod tellus ullamcorper ornare."
+                        + " Phasellus mattis risus et lectus euismod eu fermentum sem cursus."
+                        + " Phasellus tristique consectetur mauris eu porttitor. Sed lobortis"
+                        + " porttitor orci.";
         String lang = "la";
         byte[] textBytes = snepTestData2.getBytes();
         byte[] langBytes = lang.getBytes("US-ASCII");
@@ -113,8 +182,10 @@ public final class SnepMessage {
         System.arraycopy(langBytes, 0, payload, 1, langLength);
         System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
 
-        NdefRecord data2 = new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_TEXT, new byte[0], payload);
-        return new NdefMessage(new NdefRecord[]{data2});
+        NdefRecord data2 =
+                new NdefRecord(
+                        NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_TEXT, new byte[0], payload);
+        return new NdefMessage(new NdefRecord[] {data2});
     }
 
     public static NdefMessage getSmallNdef() throws UnsupportedEncodingException {
@@ -131,8 +202,10 @@ public final class SnepMessage {
         System.arraycopy(langBytes, 0, payload, 1, langLength);
         System.arraycopy(textBytes, 0, payload, 1 + langLength, textLength);
 
-        NdefRecord data1 = new NdefRecord(NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_TEXT, new byte[0], payload);
-        return new NdefMessage(new NdefRecord[]{data1});
+        NdefRecord data1 =
+                new NdefRecord(
+                        NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_TEXT, new byte[0], payload);
+        return new NdefMessage(new NdefRecord[] {data1});
     }
 
     private SnepMessage(byte[] data) throws FormatException {
@@ -162,8 +235,8 @@ public final class SnepMessage {
         }
     }
 
-    SnepMessage(byte version, byte field, int length, int acceptableLength,
-            NdefMessage ndefMessage) {
+    SnepMessage(
+            byte version, byte field, int length, int acceptableLength, NdefMessage ndefMessage) {
         mVersion = version;
         mField = field;
         mLength = length;
@@ -175,15 +248,15 @@ public final class SnepMessage {
         byte[] bytes;
         if (mNdefMessage != null) {
             if (NfcService.sIsDtaMode && DtaSnepClient.mTestCaseId != 0) {
-               if (DtaSnepClient.mTestCaseId == 5 || DtaSnepClient.mTestCaseId == 6) {
-                   bytes = mNdefMessage.toByteArray();
-               } else {
-                   if (NfcService.sIsShortRecordLayout) {
-                       bytes = NDEF_SHORT_TEST_RECORD;
-                   } else {
-                       bytes = NDEF_TEST_RECORD;
-                   }
-               }
+                if (DtaSnepClient.mTestCaseId == 5 || DtaSnepClient.mTestCaseId == 6) {
+                    bytes = mNdefMessage.toByteArray();
+                } else {
+                    if (NfcService.sIsShortRecordLayout) {
+                        bytes = NDEF_SHORT_TEST_RECORD;
+                    } else {
+                        bytes = NDEF_TEST_RECORD;
+                    }
+                }
             } else {
                 bytes = mNdefMessage.toByteArray();
             }
@@ -209,7 +282,7 @@ public final class SnepMessage {
                 output.writeInt(bytes.length);
             }
             output.write(bytes);
-        } catch(IOException e) {
+        } catch (IOException e) {
             return null;
         }
 

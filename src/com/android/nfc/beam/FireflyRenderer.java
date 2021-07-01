@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.android.nfc.beam;
 
 import android.content.Context;
@@ -23,14 +22,12 @@ import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLUtils;
 import android.util.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
-
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
@@ -60,10 +57,10 @@ public class FireflyRenderer {
 
     // Vertices for drawing a 32x32 rect
     static final float mVertices[] = {
-        0.0f,  0.0f, 0.0f,  // 0, Top Left
-        0.0f,  32.0f, 0.0f, // 1, Bottom Left
+        0.0f, 0.0f, 0.0f, // 0, Top Left
+        0.0f, 32.0f, 0.0f, // 1, Bottom Left
         32.0f, 32.0f, 0.0f, // 2, Bottom Right
-        32.0f, 0.0f, 0.0f,  // 3, Top Right
+        32.0f, 0.0f, 0.0f, // 3, Top Right
     };
 
     // Mapping coordinates for the texture
@@ -75,7 +72,7 @@ public class FireflyRenderer {
     };
 
     // Connecting order (draws a square)
-    static final short[] mIndices = { 0, 1, 2, 0, 2, 3 };
+    static final short[] mIndices = {0, 1, 2, 0, 2, 3};
 
     final Context mContext;
 
@@ -125,10 +122,7 @@ public class FireflyRenderer {
         }
     }
 
-    /**
-     * Starts rendering fireflies on the given surface.
-     * Must be called from the UI-thread.
-     */
+    /** Starts rendering fireflies on the given surface. Must be called from the UI-thread. */
     public void start(SurfaceTexture surface, int width, int height) {
         mSurface = surface;
         mDisplayWidth = width;
@@ -138,10 +132,7 @@ public class FireflyRenderer {
         mFireflyRenderThread.start();
     }
 
-    /**
-     * Stops rendering fireflies.
-     * Must be called from the UI-thread.
-     */
+    /** Stops rendering fireflies. Must be called from the UI-thread. */
     public void stop() {
         if (mFireflyRenderThread != null) {
             mFireflyRenderThread.finish();
@@ -183,7 +174,13 @@ public class FireflyRenderer {
             // make adjustments for screen ratio
             mGL.glMatrixMode(GL10.GL_PROJECTION);
             mGL.glLoadIdentity();
-            mGL.glFrustumf(-mDisplayWidth, mDisplayWidth, mDisplayHeight, -mDisplayHeight, NEAR_CLIPPING_PLANE, FAR_CLIPPING_PLANE);
+            mGL.glFrustumf(
+                    -mDisplayWidth,
+                    mDisplayWidth,
+                    mDisplayHeight,
+                    -mDisplayHeight,
+                    NEAR_CLIPPING_PLANE,
+                    FAR_CLIPPING_PLANE);
 
             // Switch back to modelview
             mGL.glMatrixMode(GL10.GL_MODELVIEW);
@@ -191,7 +188,6 @@ public class FireflyRenderer {
 
             mGL.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
             mGL.glDepthMask(true);
-
 
             for (Firefly firefly : mFireflies) {
                 firefly.reset();
@@ -272,17 +268,19 @@ public class FireflyRenderer {
                 if (in != null) {
                     try {
                         in.close();
-                    } catch (IOException e) { }
+                    } catch (IOException e) {
+                    }
                 }
             }
         }
 
         private void checkCurrent() {
-            if (!mEglContext.equals(mEgl.eglGetCurrentContext()) ||
-                    !mEglSurface.equals(mEgl.eglGetCurrentSurface(EGL10.EGL_DRAW))) {
+            if (!mEglContext.equals(mEgl.eglGetCurrentContext())
+                    || !mEglSurface.equals(mEgl.eglGetCurrentSurface(EGL10.EGL_DRAW))) {
                 if (!mEgl.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext)) {
-                    throw new RuntimeException("eglMakeCurrent failed "
-                            + GLUtils.getEGLErrorString(mEgl.eglGetError()));
+                    throw new RuntimeException(
+                            "eglMakeCurrent failed "
+                                    + GLUtils.getEGLErrorString(mEgl.eglGetError()));
                 }
             }
         }
@@ -293,15 +291,17 @@ public class FireflyRenderer {
 
             mEglDisplay = mEgl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
             if (mEglDisplay == EGL10.EGL_NO_DISPLAY) {
-                Log.e(LOG_TAG, "eglGetDisplay failed " +
-                        GLUtils.getEGLErrorString(mEgl.eglGetError()));
+                Log.e(
+                        LOG_TAG,
+                        "eglGetDisplay failed " + GLUtils.getEGLErrorString(mEgl.eglGetError()));
                 return false;
             }
 
             int[] version = new int[2];
             if (!mEgl.eglInitialize(mEglDisplay, version)) {
-                Log.e(LOG_TAG, "eglInitialize failed " +
-                        GLUtils.getEGLErrorString(mEgl.eglGetError()));
+                Log.e(
+                        LOG_TAG,
+                        "eglInitialize failed " + GLUtils.getEGLErrorString(mEgl.eglGetError()));
                 return false;
             }
 
@@ -311,19 +311,21 @@ public class FireflyRenderer {
                 return false;
             }
 
-            mEglContext = mEgl.eglCreateContext(mEglDisplay, mEglConfig, EGL10.EGL_NO_CONTEXT, null);
+            mEglContext =
+                    mEgl.eglCreateContext(mEglDisplay, mEglConfig, EGL10.EGL_NO_CONTEXT, null);
 
             mEglSurface = mEgl.eglCreateWindowSurface(mEglDisplay, mEglConfig, mSurface, null);
 
             if (mEglSurface == null || mEglSurface == EGL10.EGL_NO_SURFACE) {
                 int error = mEgl.eglGetError();
-                Log.e(LOG_TAG,"createWindowSurface returned error " + Integer.toString(error));
+                Log.e(LOG_TAG, "createWindowSurface returned error " + Integer.toString(error));
                 return false;
             }
 
             if (!mEgl.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext)) {
-                Log.e(LOG_TAG, "eglMakeCurrent failed " +
-                        GLUtils.getEGLErrorString(mEgl.eglGetError()));
+                Log.e(
+                        LOG_TAG,
+                        "eglMakeCurrent failed " + GLUtils.getEGLErrorString(mEgl.eglGetError()));
                 return false;
             }
 
@@ -338,8 +340,8 @@ public class FireflyRenderer {
                 return;
             }
             // Unbind the current surface and context from the display
-            mEgl.eglMakeCurrent(mEglDisplay, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE,
-                    EGL10.EGL_NO_CONTEXT);
+            mEgl.eglMakeCurrent(
+                    mEglDisplay, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_CONTEXT);
 
             if (mEglSurface != null) {
                 mEgl.eglDestroySurface(mEglDisplay, mEglSurface);
@@ -354,8 +356,8 @@ public class FireflyRenderer {
             int[] configsCount = new int[1];
             EGLConfig[] configs = new EGLConfig[1];
             if (!mEgl.eglChooseConfig(mEglDisplay, sEglConfig, configs, 1, configsCount)) {
-                throw new IllegalArgumentException("eglChooseConfig failed " +
-                        GLUtils.getEGLErrorString(mEgl.eglGetError()));
+                throw new IllegalArgumentException(
+                        "eglChooseConfig failed " + GLUtils.getEGLErrorString(mEgl.eglGetError()));
             } else if (configsCount[0] > 0) {
                 return configs[0];
             }
@@ -375,8 +377,7 @@ public class FireflyRenderer {
         float mScale;
         float mAlpha;
 
-        public Firefly() {
-        }
+        public Firefly() {}
 
         void reset() {
             mX = (float) (Math.random() * mDisplayWidth) * 4 - 2 * mDisplayWidth;
@@ -388,10 +389,10 @@ public class FireflyRenderer {
         }
 
         public void updatePositionAndScale(long timeElapsedMs) {
-               mT += timeElapsedMs;
-               mZ = mZ0 + mT/1000f * SPEED;
-               mAlpha = 1f-mZ;
-               if(mZ > 1.0) reset();
+            mT += timeElapsedMs;
+            mZ = mZ0 + mT / 1000f * SPEED;
+            mAlpha = 1f - mZ;
+            if (mZ > 1.0) reset();
         }
 
         public void draw(GL10 gl) {
@@ -406,16 +407,17 @@ public class FireflyRenderer {
             gl.glVertexPointer(3, GL10.GL_FLOAT, 0, mVertexBuffer);
             gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTextureBuffer);
 
-            gl.glTranslatef(mX, mY, -NEAR_CLIPPING_PLANE-mZ*(FAR_CLIPPING_PLANE-NEAR_CLIPPING_PLANE));
+            gl.glTranslatef(
+                    mX, mY, -NEAR_CLIPPING_PLANE - mZ * (FAR_CLIPPING_PLANE - NEAR_CLIPPING_PLANE));
             gl.glColor4f(1, 1, 1, mAlpha);
 
             // scale around center
-            gl.glTranslatef(TEXTURE_HEIGHT/2, TEXTURE_HEIGHT/2, 0);
+            gl.glTranslatef(TEXTURE_HEIGHT / 2, TEXTURE_HEIGHT / 2, 0);
             gl.glScalef(mScale, mScale, 0);
-            gl.glTranslatef(-TEXTURE_HEIGHT/2, -TEXTURE_HEIGHT/2, 0);
+            gl.glTranslatef(-TEXTURE_HEIGHT / 2, -TEXTURE_HEIGHT / 2, 0);
 
-            gl.glDrawElements(GL10.GL_TRIANGLES, mIndices.length, GL10.GL_UNSIGNED_SHORT,
-                    mIndexBuffer);
+            gl.glDrawElements(
+                    GL10.GL_TRIANGLES, mIndices.length, GL10.GL_UNSIGNED_SHORT, mIndexBuffer);
 
             gl.glColor4f(1, 1, 1, 1);
             gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);

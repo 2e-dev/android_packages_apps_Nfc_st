@@ -170,7 +170,7 @@ bool PowerSwitch::setLevel(PowerLevel newLevel) {
     if (gActivated) {
       DLOG_IF(INFO, nfc_debug_enabled)
           << StringPrintf("%s: wait for deactivation", fn);
-      gDeactivatedEvent.wait();
+      gDeactivatedEvent.wait(300);
     }
     mMutex.lock();
   }

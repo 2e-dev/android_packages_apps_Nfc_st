@@ -16,19 +16,17 @@
 
 package com.android.nfc.ndefpush;
 
+import android.nfc.NdefMessage;
+import android.util.Log;
 import com.android.nfc.DeviceHost.LlcpSocket;
 import com.android.nfc.LlcpException;
 import com.android.nfc.NfcService;
-
-import android.nfc.NdefMessage;
-import android.util.Log;
-
 import java.io.IOException;
 import java.util.Arrays;
 
 /**
- * Simple client to push the local NDEF message to a server on the remote side of an
- * LLCP connection, using the Android Ndef Push Protocol.
+ * Simple client to push the local NDEF message to a server on the remote side of an LLCP
+ * connection, using the Android Ndef Push Protocol.
  */
 public class NdefPushClient {
     private static final String TAG = "NdefPushClient";
@@ -105,7 +103,7 @@ public class NdefPushClient {
             if (DBG) Log.d(TAG, "about to send a " + buffer.length + " byte message");
             while (offset < buffer.length) {
                 int length = Math.min(buffer.length - offset, remoteMiu);
-                byte[] tmpBuffer = Arrays.copyOfRange(buffer, offset, offset+length);
+                byte[] tmpBuffer = Arrays.copyOfRange(buffer, offset, offset + length);
                 if (DBG) Log.d(TAG, "about to send a " + length + " byte packet");
                 sock.send(tmpBuffer);
                 offset += length;

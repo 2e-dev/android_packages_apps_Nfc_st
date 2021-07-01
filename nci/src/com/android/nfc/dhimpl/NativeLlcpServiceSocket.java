@@ -18,13 +18,9 @@ package com.android.nfc.dhimpl;
 
 import com.android.nfc.DeviceHost;
 import com.android.nfc.DeviceHost.LlcpSocket;
-
 import java.io.IOException;
 
-/**
- * LlcpServiceSocket represents a LLCP Service to be used in a
- * Connection-oriented communication
- */
+/** LlcpServiceSocket represents a LLCP Service to be used in a Connection-oriented communication */
 public class NativeLlcpServiceSocket implements DeviceHost.LlcpServerSocket {
     private int mHandle;
     private int mLocalMiu;
@@ -33,9 +29,10 @@ public class NativeLlcpServiceSocket implements DeviceHost.LlcpServerSocket {
     private int mSap;
     private String mServiceName;
 
-    public NativeLlcpServiceSocket(){ }
+    public NativeLlcpServiceSocket() {}
 
     private native NativeLlcpSocket doAccept(int miu, int rw, int linearBufferLength);
+
     @Override
     public LlcpSocket accept() throws IOException {
         LlcpSocket socket = doAccept(mLocalMiu, mLocalRw, mLocalLinearBufferLength);
@@ -44,6 +41,7 @@ public class NativeLlcpServiceSocket implements DeviceHost.LlcpServerSocket {
     }
 
     private native boolean doClose();
+
     @Override
     public void close() throws IOException {
         if (!doClose()) {

@@ -16,10 +16,6 @@
 
 package com.android.nfc.cardemulation;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlSerializer;
-
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -27,23 +23,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.nfc.cardemulation.NfcFServiceInfo;
-import android.nfc.cardemulation.NfcFCardEmulation;
 import android.nfc.cardemulation.HostNfcFService;
+import android.nfc.cardemulation.NfcFCardEmulation;
+import android.nfc.cardemulation.NfcFServiceInfo;
 import android.os.UserHandle;
 import android.util.AtomicFile;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.Xml;
 import android.util.proto.ProtoOutputStream;
-
 import com.android.internal.util.FastXmlSerializer;
 import com.google.android.collect.Maps;
-
-
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -53,13 +46,16 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlSerializer;
 
 public class RegisteredNfcFServicesCache {
-    static final String XML_INDENT_OUTPUT_FEATURE = "http://xmlpull.org/v1/doc/features.html#indent-output";
+    static final String XML_INDENT_OUTPUT_FEATURE =
+            "http://xmlpull.org/v1/doc/features.html#indent-output";
     static final String TAG = "RegisteredNfcFServicesCache";
     static final boolean DBG = false;
 
@@ -101,11 +97,10 @@ public class RegisteredNfcFServicesCache {
     };
 
     private static class UserServices {
-        /**
-         * All services that have registered
-         */
+        /** All services that have registered */
         final HashMap<ComponentName, NfcFServiceInfo> services =
                 Maps.newHashMap(); // Re-built at run-time
+
         final HashMap<ComponentName, DynamicSystemCode> dynamicSystemCode =
                 Maps.newHashMap(); // In memory cache of dynamic System Code store
         final HashMap<ComponentName, DynamicNfcid2> dynamicNfcid2 =
@@ -125,30 +120,35 @@ public class RegisteredNfcFServicesCache {
         mContext = context;
         mCallback = callback;
 
-        final BroadcastReceiver receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                final int uid = intent.getIntExtra(Intent.EXTRA_UID, -1);
-                String action = intent.getAction();
-                if (DBG) Log.d(TAG, "Intent action: " + action);
-                if (uid != -1) {
-                    boolean replaced = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false) &&
-                            (Intent.ACTION_PACKAGE_ADDED.equals(action) ||
-                             Intent.ACTION_PACKAGE_REMOVED.equals(action));
-                    if (!replaced) {
-                        int currentUser = ActivityManager.getCurrentUser();
-                        if (currentUser == UserHandle.getUserId(uid)) {
-                            invalidateCache(UserHandle.getUserId(uid));
-                        } else {
-                            // Cache will automatically be updated on user switch
+        final BroadcastReceiver receiver =
+                new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        final int uid = intent.getIntExtra(Intent.EXTRA_UID, -1);
+                        String action = intent.getAction();
+                        if (DBG) Log.d(TAG, "Intent action: " + action);
+                        if (uid != -1) {
+                            boolean replaced =
+                                    intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+                                            && (Intent.ACTION_PACKAGE_ADDED.equals(action)
+                                                    || Intent.ACTION_PACKAGE_REMOVED.equals(
+                                                            action));
+                            if (!replaced) {
+                                int currentUser = ActivityManager.getCurrentUser();
+                                if (currentUser == UserHandle.getUserId(uid)) {
+                                    invalidateCache(UserHandle.getUserId(uid));
+                                } else {
+                                    // Cache will automatically be updated on user switch
+                                }
+                            } else {
+                                if (DBG)
+                                    Log.d(
+                                            TAG,
+                                            "Ignoring package intent due to package being replaced.");
+                            }
                         }
-                    } else {
-                        if (DBG) Log.d(TAG,
-                                "Ignoring package intent due to package being replaced.");
                     }
-                }
-            }
-        };
+                };
         mReceiver = new AtomicReference<BroadcastReceiver>(receiver);
 
         IntentFilter intentFilter = new IntentFilter();
@@ -185,8 +185,8 @@ public class RegisteredNfcFServicesCache {
         }
     }
 
-    boolean containsServiceLocked(ArrayList<NfcFServiceInfo> services,
-            ComponentName componentName) {
+    boolean containsServiceLocked(
+            ArrayList<NfcFServiceInfo> services, ComponentName componentName) {
         for (NfcFServiceInfo service : services) {
             if (service.getComponent().equals(componentName)) return true;
         }
@@ -217,8 +217,9 @@ public class RegisteredNfcFServicesCache {
         if (DBG) Log.d(TAG, "getInstalledServices");
         PackageManager pm;
         try {
-            pm = mContext.createPackageContextAsUser("android", 0,
-                    new UserHandle(userId)).getPackageManager();
+            pm =
+                    mContext.createPackageContextAsUser("android", 0, new UserHandle(userId))
+                            .getPackageManager();
         } catch (NameNotFoundException e) {
             Log.e(TAG, "Could not create user package context");
             return null;
@@ -226,27 +227,34 @@ public class RegisteredNfcFServicesCache {
 
         ArrayList<NfcFServiceInfo> validServices = new ArrayList<NfcFServiceInfo>();
 
-        List<ResolveInfo> resolvedServices = pm.queryIntentServicesAsUser(
-                new Intent(HostNfcFService.SERVICE_INTERFACE),
-                PackageManager.GET_META_DATA, userId);
+        List<ResolveInfo> resolvedServices =
+                pm.queryIntentServicesAsUser(
+                        new Intent(HostNfcFService.SERVICE_INTERFACE),
+                        PackageManager.GET_META_DATA,
+                        userId);
 
         for (ResolveInfo resolvedService : resolvedServices) {
             try {
                 ServiceInfo si = resolvedService.serviceInfo;
                 ComponentName componentName = new ComponentName(si.packageName, si.name);
                 // Check if the package holds the NFC permission
-                if (pm.checkPermission(android.Manifest.permission.NFC, si.packageName) !=
-                        PackageManager.PERMISSION_GRANTED) {
-                    Log.e(TAG, "Skipping NfcF service " + componentName +
-                            ": it does not require the permission " +
-                            android.Manifest.permission.NFC);
+                if (pm.checkPermission(android.Manifest.permission.NFC, si.packageName)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    Log.e(
+                            TAG,
+                            "Skipping NfcF service "
+                                    + componentName
+                                    + ": it does not require the permission "
+                                    + android.Manifest.permission.NFC);
                     continue;
                 }
-                if (!android.Manifest.permission.BIND_NFC_SERVICE.equals(
-                        si.permission)) {
-                    Log.e(TAG, "Skipping NfcF service " + componentName +
-                            ": it does not require the permission " +
-                            android.Manifest.permission.BIND_NFC_SERVICE);
+                if (!android.Manifest.permission.BIND_NFC_SERVICE.equals(si.permission)) {
+                    Log.e(
+                            TAG,
+                            "Skipping NfcF service "
+                                    + componentName
+                                    + ": it does not require the permission "
+                                    + android.Manifest.permission.BIND_NFC_SERVICE);
                     continue;
                 }
                 NfcFServiceInfo service = new NfcFServiceInfo(pm, resolvedService);
@@ -321,8 +329,7 @@ public class RegisteredNfcFServicesCache {
                 if (DBG) Log.d(TAG, "Removed service: " + service.getComponent());
             }
             // Apply dynamic System Code mappings
-            ArrayList<ComponentName> toBeRemovedDynamicSystemCode =
-                    new ArrayList<ComponentName>();
+            ArrayList<ComponentName> toBeRemovedDynamicSystemCode = new ArrayList<ComponentName>();
             for (Map.Entry<ComponentName, DynamicSystemCode> entry :
                     userServices.dynamicSystemCode.entrySet()) {
                 // Verify component / uid match
@@ -337,8 +344,7 @@ public class RegisteredNfcFServicesCache {
                 }
             }
             // Apply dynamic NFCID2 mappings
-            ArrayList<ComponentName> toBeRemovedDynamicNfcid2 =
-                    new ArrayList<ComponentName>();
+            ArrayList<ComponentName> toBeRemovedDynamicNfcid2 = new ArrayList<ComponentName>();
             for (Map.Entry<ComponentName, DynamicNfcid2> entry :
                     userServices.dynamicNfcid2.entrySet()) {
                 // Verify component / uid match
@@ -353,34 +359,31 @@ public class RegisteredNfcFServicesCache {
                 }
             }
             for (ComponentName removedComponent : toBeRemovedDynamicSystemCode) {
-                Log.d(TAG, "Removing dynamic System Code registered by " +
-                        removedComponent);
+                Log.d(TAG, "Removing dynamic System Code registered by " + removedComponent);
                 userServices.dynamicSystemCode.remove(removedComponent);
             }
             for (ComponentName removedComponent : toBeRemovedDynamicNfcid2) {
-                Log.d(TAG, "Removing dynamic NFCID2 registered by " +
-                        removedComponent);
+                Log.d(TAG, "Removing dynamic NFCID2 registered by " + removedComponent);
                 userServices.dynamicNfcid2.remove(removedComponent);
             }
             // Assign a NFCID2 for services requesting a random NFCID2, then apply
             boolean nfcid2Assigned = false;
             for (Map.Entry<ComponentName, NfcFServiceInfo> entry :
-                userServices.services.entrySet()) {
+                    userServices.services.entrySet()) {
                 NfcFServiceInfo service = entry.getValue();
                 if (service.getNfcid2().equalsIgnoreCase("RANDOM")) {
                     String randomNfcid2 = generateRandomNfcid2();
                     service.setOrReplaceDynamicNfcid2(randomNfcid2);
-                    DynamicNfcid2 dynamicNfcid2 =
-                            new DynamicNfcid2(service.getUid(), randomNfcid2);
+                    DynamicNfcid2 dynamicNfcid2 = new DynamicNfcid2(service.getUid(), randomNfcid2);
                     userServices.dynamicNfcid2.put(entry.getKey(), dynamicNfcid2);
                     nfcid2Assigned = true;
                 }
             }
 
             // Persist to filesystem
-            if (toBeRemovedDynamicSystemCode.size() > 0 ||
-                    toBeRemovedDynamicNfcid2.size() > 0 ||
-                    nfcid2Assigned) {
+            if (toBeRemovedDynamicSystemCode.size() > 0
+                    || toBeRemovedDynamicNfcid2.size() > 0
+                    || nfcid2Assigned) {
                 writeDynamicSystemCodeNfcid2Locked();
             }
 
@@ -402,8 +405,8 @@ public class RegisteredNfcFServicesCache {
             XmlPullParser parser = Xml.newPullParser();
             parser.setInput(fis, null);
             int eventType = parser.getEventType();
-            while (eventType != XmlPullParser.START_TAG &&
-                    eventType != XmlPullParser.END_DOCUMENT) {
+            while (eventType != XmlPullParser.START_TAG
+                    && eventType != XmlPullParser.END_DOCUMENT) {
                 eventType = parser.next();
             }
             String tagName = parser.getName();
@@ -417,16 +420,12 @@ public class RegisteredNfcFServicesCache {
                     tagName = parser.getName();
                     if (eventType == XmlPullParser.START_TAG) {
                         if ("service".equals(tagName) && parser.getDepth() == 2) {
-                            String compString =
-                                    parser.getAttributeValue(null, "component");
-                            String uidString =
-                                    parser.getAttributeValue(null, "uid");
-                            String systemCodeString =
-                                    parser.getAttributeValue(null, "system-code");
+                            String compString = parser.getAttributeValue(null, "component");
+                            String uidString = parser.getAttributeValue(null, "uid");
+                            String systemCodeString = parser.getAttributeValue(null, "system-code");
                             String descriptionString =
                                     parser.getAttributeValue(null, "description");
-                            String nfcid2String =
-                                    parser.getAttributeValue(null, "nfcid2");
+                            String nfcid2String = parser.getAttributeValue(null, "nfcid2");
                             if (compString == null || uidString == null) {
                                 Log.e(TAG, "Invalid service attributes");
                             } else {
@@ -456,8 +455,7 @@ public class RegisteredNfcFServicesCache {
                                 if (nfcid2 != null) {
                                     DynamicNfcid2 dynamicNfcid2 =
                                             new DynamicNfcid2(currentUid, nfcid2);
-                                    userServices.dynamicNfcid2.put(
-                                            componentName, dynamicNfcid2);
+                                    userServices.dynamicNfcid2.put(componentName, dynamicNfcid2);
                                 }
                             }
                             componentName = null;
@@ -468,7 +466,8 @@ public class RegisteredNfcFServicesCache {
                         }
                     }
                     eventType = parser.next();
-                };
+                }
+                ;
             }
         } catch (Exception e) {
             Log.e(TAG, "Could not parse dynamic System Code, NFCID2 file, trashing.");
@@ -502,7 +501,9 @@ public class RegisteredNfcFServicesCache {
                     out.attribute(null, "uid", Integer.toString(entry.getValue().uid));
                     out.attribute(null, "system-code", entry.getValue().systemCode);
                     if (userServices.dynamicNfcid2.containsKey(entry.getKey())) {
-                        out.attribute(null, "nfcid2",
+                        out.attribute(
+                                null,
+                                "nfcid2",
                                 userServices.dynamicNfcid2.get(entry.getKey()).nfcid2);
                     }
                     out.endTag(null, "service");
@@ -531,8 +532,8 @@ public class RegisteredNfcFServicesCache {
         }
     }
 
-    public boolean registerSystemCodeForService(int userId, int uid,
-            ComponentName componentName, String systemCode) {
+    public boolean registerSystemCodeForService(
+            int userId, int uid, ComponentName componentName, String systemCode) {
         if (DBG) Log.d(TAG, "registerSystemCodeForService");
         ArrayList<NfcFServiceInfo> newServices = null;
         boolean success;
@@ -556,8 +557,8 @@ public class RegisteredNfcFServicesCache {
                 Log.e(TAG, "UID mismatch.");
                 return false;
             }
-            if (!systemCode.equalsIgnoreCase("NULL") &&
-                    !NfcFCardEmulation.isValidSystemCode(systemCode)) {
+            if (!systemCode.equalsIgnoreCase("NULL")
+                    && !NfcFCardEmulation.isValidSystemCode(systemCode)) {
                 Log.e(TAG, "System Code " + systemCode + " is not a valid System Code");
                 return false;
             }
@@ -608,8 +609,8 @@ public class RegisteredNfcFServicesCache {
         return registerSystemCodeForService(userId, uid, componentName, "NULL");
     }
 
-    public boolean setNfcid2ForService(int userId, int uid,
-            ComponentName componentName, String nfcid2) {
+    public boolean setNfcid2ForService(
+            int userId, int uid, ComponentName componentName, String nfcid2) {
         if (DBG) Log.d(TAG, "setNfcid2ForService");
         ArrayList<NfcFServiceInfo> newServices = null;
         boolean success;
@@ -708,11 +709,15 @@ public class RegisteredNfcFServicesCache {
         long min = 0L;
         long max = 0xFFFFFFFFFFFFL;
 
-        long randomNfcid2 = (long)Math.floor(Math.random() * (max-min+1)) + min;
-        return String.format("02FE%02X%02X%02X%02X%02X%02X",
-                (randomNfcid2 >>> 8 * 5) & 0xFF, (randomNfcid2 >>> 8 * 4) & 0xFF,
-                (randomNfcid2 >>> 8 * 3) & 0xFF, (randomNfcid2 >>> 8 * 2) & 0xFF,
-                (randomNfcid2 >>> 8 * 1) & 0xFF, (randomNfcid2 >>> 8 * 0) & 0xFF);
+        long randomNfcid2 = (long) Math.floor(Math.random() * (max - min + 1)) + min;
+        return String.format(
+                "02FE%02X%02X%02X%02X%02X%02X",
+                (randomNfcid2 >>> 8 * 5) & 0xFF,
+                (randomNfcid2 >>> 8 * 4) & 0xFF,
+                (randomNfcid2 >>> 8 * 3) & 0xFF,
+                (randomNfcid2 >>> 8 * 2) & 0xFF,
+                (randomNfcid2 >>> 8 * 1) & 0xFF,
+                (randomNfcid2 >>> 8 * 0) & 0xFF);
     }
 
     public void dump(FileDescriptor fd, PrintWriter pw, String[] args) {
@@ -730,11 +735,10 @@ public class RegisteredNfcFServicesCache {
     /**
      * Dump debugging information as a RegisteredNfcFServicesCacheProto
      *
-     * Note:
-     * See proto definition in frameworks/base/core/proto/android/nfc/card_emulation.proto
+     * <p>Note: See proto definition in frameworks/base/core/proto/android/nfc/card_emulation.proto
      * When writing a nested message, must call {@link ProtoOutputStream#start(long)} before and
-     * {@link ProtoOutputStream#end(long)} after.
-     * Never reuse a proto field number. When removing a field, mark it as reserved.
+     * {@link ProtoOutputStream#end(long)} after. Never reuse a proto field number. When removing a
+     * field, mark it as reserved.
      */
     void dumpDebug(ProtoOutputStream proto) {
         synchronized (mLock) {
@@ -746,5 +750,4 @@ public class RegisteredNfcFServicesCache {
             }
         }
     }
-
 }

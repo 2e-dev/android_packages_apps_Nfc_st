@@ -18,9 +18,6 @@ package com.android.nfc.beam;
 
 import static android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
 
-import com.android.nfc.R;
-import com.android.nfc.beam.FireflyRenderer;
-
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
@@ -35,7 +32,6 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
@@ -47,12 +43,10 @@ import android.util.Log;
 import android.view.ActionMode;
 import android.view.Display;
 import android.view.KeyEvent;
-import android.view.KeyboardShortcutGroup;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import com.android.internal.policy.PhoneWindow;
 import android.view.SearchEvent;
 import android.view.Surface;
 import android.view.SurfaceControl;
@@ -68,34 +62,37 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.List;
+import com.android.internal.policy.PhoneWindow;
+import com.android.nfc.R;
 
 /**
- * This class is responsible for handling the UI animation
- * around Android Beam. The animation consists of the following
- * animators:
+ * This class is responsible for handling the UI animation around Android Beam. The animation
+ * consists of the following animators:
  *
- * mPreAnimator: scales the screenshot down to INTERMEDIATE_SCALE
- * mSlowSendAnimator: scales the screenshot down to 0.2f (used as a "send in progress" animation)
- * mFastSendAnimator: quickly scales the screenshot down to 0.0f (used for send success)
- * mFadeInAnimator: fades the current activity back in (used after mFastSendAnimator completes)
- * mScaleUpAnimator: scales the screenshot back up to full screen (used for failure or receiving)
- * mHintAnimator: Slowly turns up the alpha of the "Touch to Beam" hint
+ * <p>mPreAnimator: scales the screenshot down to INTERMEDIATE_SCALE mSlowSendAnimator: scales the
+ * screenshot down to 0.2f (used as a "send in progress" animation) mFastSendAnimator: quickly
+ * scales the screenshot down to 0.0f (used for send success) mFadeInAnimator: fades the current
+ * activity back in (used after mFastSendAnimator completes) mScaleUpAnimator: scales the screenshot
+ * back up to full screen (used for failure or receiving) mHintAnimator: Slowly turns up the alpha
+ * of the "Touch to Beam" hint
  *
- * Possible sequences are:
+ * <p>Possible sequences are:
  *
- * mPreAnimator => mSlowSendAnimator => mFastSendAnimator => mFadeInAnimator (send success)
- * mPreAnimator => mSlowSendAnimator => mScaleUpAnimator (send failure)
- * mPreAnimator => mScaleUpAnimator (p2p link broken, or data received)
+ * <p>mPreAnimator => mSlowSendAnimator => mFastSendAnimator => mFadeInAnimator (send success)
+ * mPreAnimator => mSlowSendAnimator => mScaleUpAnimator (send failure) mPreAnimator =>
+ * mScaleUpAnimator (p2p link broken, or data received)
  *
- * Note that mFastSendAnimator and mFadeInAnimator are combined in a set, as they
- * are an atomic animation that cannot be interrupted.
+ * <p>Note that mFastSendAnimator and mFadeInAnimator are combined in a set, as they are an atomic
+ * animation that cannot be interrupted.
  *
- * All methods of this class must be called on the UI thread
+ * <p>All methods of this class must be called on the UI thread
  */
-public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
-        TimeAnimator.TimeListener, TextureView.SurfaceTextureListener, android.view.Window.Callback {
+public class SendUi
+        implements Animator.AnimatorListener,
+                View.OnTouchListener,
+                TimeAnimator.TimeListener,
+                TextureView.SurfaceTextureListener,
+                android.view.Window.Callback {
     static final String TAG = "SendUi";
 
     static final float INTERMEDIATE_SCALE = 0.6f;
@@ -199,6 +196,7 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
 
     public interface Callback {
         public void onSendConfirmed();
+
         public void onCanceled();
     }
 
@@ -213,8 +211,8 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
 
         mDisplay = mWindowManager.getDefaultDisplay();
 
-        mLayoutInflater = (LayoutInflater)
-                context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mLayoutInflater =
+                (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mScreenshotLayout = mLayoutInflater.inflate(R.layout.screenshot, null);
 
         mScreenshotView = (ImageView) mScreenshotLayout.findViewById(R.id.screenshot);
@@ -230,16 +228,20 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
         // isHighEndGfx() returns true - otherwise, we're too limited
         // on resources to do it.
         mHardwareAccelerated = ActivityManager.isHighEndGfx();
-        int hwAccelerationFlags = mHardwareAccelerated ?
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED : 0;
+        int hwAccelerationFlags =
+                mHardwareAccelerated ? WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED : 0;
 
-        mWindowLayoutParams = new WindowManager.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 0,
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN
-                | hwAccelerationFlags
-                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-                PixelFormat.OPAQUE);
+        mWindowLayoutParams =
+                new WindowManager.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        0,
+                        0,
+                        WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN
+                                | hwAccelerationFlags
+                                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                        PixelFormat.OPAQUE);
         mWindowLayoutParams.privateFlags |=
                 WindowManager.LayoutParams.SYSTEM_FLAG_SHOW_FOR_ALL_USERS;
         mWindowLayoutParams.layoutInDisplayCutoutMode = LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
@@ -257,23 +259,26 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
 
         PropertyValuesHolder postX = PropertyValuesHolder.ofFloat("scaleX", SEND_SCREENSHOT_SCALE);
         PropertyValuesHolder postY = PropertyValuesHolder.ofFloat("scaleY", SEND_SCREENSHOT_SCALE);
-        PropertyValuesHolder alphaDown = PropertyValuesHolder.ofFloat("alpha",
-                new float[]{1.0f, 0.0f});
+        PropertyValuesHolder alphaDown =
+                PropertyValuesHolder.ofFloat("alpha", new float[] {1.0f, 0.0f});
 
         mSlowSendAnimator = ObjectAnimator.ofPropertyValuesHolder(mScreenshotView, postX, postY);
         mSlowSendAnimator.setInterpolator(new DecelerateInterpolator());
         mSlowSendAnimator.setDuration(SLOW_SEND_DURATION_MS);
 
-        mFastSendAnimator = ObjectAnimator.ofPropertyValuesHolder(mScreenshotView, postX,
-                postY, alphaDown);
+        mFastSendAnimator =
+                ObjectAnimator.ofPropertyValuesHolder(mScreenshotView, postX, postY, alphaDown);
         mFastSendAnimator.setInterpolator(new DecelerateInterpolator());
         mFastSendAnimator.setDuration(FAST_SEND_DURATION_MS);
         mFastSendAnimator.addListener(this);
 
-        PropertyValuesHolder scaleUpX = PropertyValuesHolder.ofFloat("scaleX", SCALE_UP_SCREENSHOT_SCALE);
-        PropertyValuesHolder scaleUpY = PropertyValuesHolder.ofFloat("scaleY", SCALE_UP_SCREENSHOT_SCALE);
+        PropertyValuesHolder scaleUpX =
+                PropertyValuesHolder.ofFloat("scaleX", SCALE_UP_SCREENSHOT_SCALE);
+        PropertyValuesHolder scaleUpY =
+                PropertyValuesHolder.ofFloat("scaleY", SCALE_UP_SCREENSHOT_SCALE);
 
-        mScaleUpAnimator = ObjectAnimator.ofPropertyValuesHolder(mScreenshotView, scaleUpX, scaleUpY);
+        mScaleUpAnimator =
+                ObjectAnimator.ofPropertyValuesHolder(mScreenshotView, scaleUpX, scaleUpY);
         mScaleUpAnimator.setInterpolator(new DecelerateInterpolator());
         mScaleUpAnimator.setDuration(SCALE_UP_DURATION_MS);
         mScaleUpAnimator.addListener(this);
@@ -363,8 +368,9 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
         // Update display metrics
         mDisplay.getRealMetrics(mDisplayMetrics);
 
-        final int statusBarHeight = mContext.getResources().getDimensionPixelSize(
-                                        com.android.internal.R.dimen.status_bar_height);
+        final int statusBarHeight =
+                mContext.getResources()
+                        .getDimensionPixelSize(com.android.internal.R.dimen.status_bar_height);
 
         mBlackLayer.setVisibility(View.GONE);
         mBlackLayer.setAlpha(0f);
@@ -428,17 +434,17 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
         // Update the starting scale - touchscreen-mashers may trigger
         // this before the pre-animation completes.
         float currentScale = mScreenshotView.getScaleX();
-        PropertyValuesHolder postX = PropertyValuesHolder.ofFloat("scaleX",
-                new float[] {currentScale, 0.0f});
-        PropertyValuesHolder postY = PropertyValuesHolder.ofFloat("scaleY",
-                new float[] {currentScale, 0.0f});
+        PropertyValuesHolder postX =
+                PropertyValuesHolder.ofFloat("scaleX", new float[] {currentScale, 0.0f});
+        PropertyValuesHolder postY =
+                PropertyValuesHolder.ofFloat("scaleY", new float[] {currentScale, 0.0f});
 
         mSlowSendAnimator.setValues(postX, postY);
 
         float currentAlpha = mBlackLayer.getAlpha();
         if (mBlackLayer.isShown() && currentAlpha > 0.0f) {
-            PropertyValuesHolder alphaDown = PropertyValuesHolder.ofFloat("alpha",
-                    new float[] {currentAlpha, 0.0f});
+            PropertyValuesHolder alphaDown =
+                    PropertyValuesHolder.ofFloat("alpha", new float[] {currentAlpha, 0.0f});
             mAlphaDownAnimator.setValues(alphaDown);
             mAlphaDownAnimator.start();
         }
@@ -491,28 +497,28 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
 
         if (finishMode == FINISH_SCALE_UP) {
             mBlackLayer.setVisibility(View.GONE);
-            PropertyValuesHolder scaleUpX = PropertyValuesHolder.ofFloat("scaleX",
-                    new float[] {currentScale, 1.0f});
-            PropertyValuesHolder scaleUpY = PropertyValuesHolder.ofFloat("scaleY",
-                    new float[] {currentScale, 1.0f});
-            PropertyValuesHolder scaleUpAlpha = PropertyValuesHolder.ofFloat("alpha",
-                    new float[] {currentAlpha, 1.0f});
+            PropertyValuesHolder scaleUpX =
+                    PropertyValuesHolder.ofFloat("scaleX", new float[] {currentScale, 1.0f});
+            PropertyValuesHolder scaleUpY =
+                    PropertyValuesHolder.ofFloat("scaleY", new float[] {currentScale, 1.0f});
+            PropertyValuesHolder scaleUpAlpha =
+                    PropertyValuesHolder.ofFloat("alpha", new float[] {currentAlpha, 1.0f});
             mScaleUpAnimator.setValues(scaleUpX, scaleUpY, scaleUpAlpha);
 
             mScaleUpAnimator.start();
-        } else if (finishMode == FINISH_SEND_SUCCESS){
+        } else if (finishMode == FINISH_SEND_SUCCESS) {
             // Modify the fast send parameters to match the current scale
-            PropertyValuesHolder postX = PropertyValuesHolder.ofFloat("scaleX",
-                    new float[] {currentScale, 0.0f});
-            PropertyValuesHolder postY = PropertyValuesHolder.ofFloat("scaleY",
-                    new float[] {currentScale, 0.0f});
-            PropertyValuesHolder alpha = PropertyValuesHolder.ofFloat("alpha",
-                    new float[] {currentAlpha, 0.0f});
+            PropertyValuesHolder postX =
+                    PropertyValuesHolder.ofFloat("scaleX", new float[] {currentScale, 0.0f});
+            PropertyValuesHolder postY =
+                    PropertyValuesHolder.ofFloat("scaleY", new float[] {currentScale, 0.0f});
+            PropertyValuesHolder alpha =
+                    PropertyValuesHolder.ofFloat("alpha", new float[] {currentAlpha, 0.0f});
             mFastSendAnimator.setValues(postX, postY, alpha);
 
             // Reset the fadeIn parameters to start from alpha 1
-            PropertyValuesHolder fadeIn = PropertyValuesHolder.ofFloat("alpha",
-                    new float[] {0.0f, 1.0f});
+            PropertyValuesHolder fadeIn =
+                    PropertyValuesHolder.ofFloat("alpha", new float[] {0.0f, 1.0f});
             mFadeInAnimator.setValues(fadeIn);
 
             mSlowSendAnimator.cancel();
@@ -548,17 +554,15 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
         mToastString = null;
     }
 
-    /**
-     * @return the current display rotation in degrees
-     */
+    /** @return the current display rotation in degrees */
     static float getDegreesForRotation(int value) {
         switch (value) {
-        case Surface.ROTATION_90:
-            return 90f;
-        case Surface.ROTATION_180:
-            return 180f;
-        case Surface.ROTATION_270:
-            return 270f;
+            case Surface.ROTATION_90:
+                return 90f;
+            case Surface.ROTATION_180:
+                return 180f;
+            case Surface.ROTATION_270:
+                return 270f;
         }
         return 0f;
     }
@@ -578,8 +582,8 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
             } else if (mState == STATE_W4_SCREENSHOT_THEN_STOP) {
                 // We were asked to finish, move to idle state and exit
                 mState = STATE_IDLE;
-            } else if (mState == STATE_W4_SCREENSHOT_PRESEND_REQUESTED ||
-                    mState == STATE_W4_SCREENSHOT_PRESEND_NFC_TAP_REQUESTED) {
+            } else if (mState == STATE_W4_SCREENSHOT_PRESEND_REQUESTED
+                    || mState == STATE_W4_SCREENSHOT_PRESEND_NFC_TAP_REQUESTED) {
                 mScreenshotBitmap = result;
                 boolean requestTap = (mState == STATE_W4_SCREENSHOT_PRESEND_NFC_TAP_REQUESTED);
                 mState = STATE_W4_PRESEND;
@@ -590,27 +594,43 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
         }
     };
 
-    /**
-     * Returns a screenshot of the current display contents.
-     */
+    /** Returns a screenshot of the current display contents. */
     Bitmap createScreenshot() {
-        boolean hasNavBar =  mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_showNavigationBar);
-        final int statusBarHeight = mContext.getResources().getDimensionPixelSize(
-                                        com.android.internal.R.dimen.status_bar_height);
+        boolean hasNavBar =
+                mContext.getResources()
+                        .getBoolean(com.android.internal.R.bool.config_showNavigationBar);
+        final int statusBarHeight =
+                mContext.getResources()
+                        .getDimensionPixelSize(com.android.internal.R.dimen.status_bar_height);
 
         // Navbar has different sizes, depending on orientation
-        final int navBarHeight = hasNavBar ? mContext.getResources().getDimensionPixelSize(
-                                        com.android.internal.R.dimen.navigation_bar_height) : 0;
-        final int navBarHeightLandscape = hasNavBar ? mContext.getResources().getDimensionPixelSize(
-                                        com.android.internal.R.dimen.navigation_bar_height_landscape) : 0;
+        final int navBarHeight =
+                hasNavBar
+                        ? mContext.getResources()
+                                .getDimensionPixelSize(
+                                        com.android.internal.R.dimen.navigation_bar_height)
+                        : 0;
+        final int navBarHeightLandscape =
+                hasNavBar
+                        ? mContext.getResources()
+                                .getDimensionPixelSize(
+                                        com.android
+                                                .internal
+                                                .R
+                                                .dimen
+                                                .navigation_bar_height_landscape)
+                        : 0;
 
-        final int navBarWidth = hasNavBar ? mContext.getResources().getDimensionPixelSize(
-                                        com.android.internal.R.dimen.navigation_bar_width) : 0;
+        final int navBarWidth =
+                hasNavBar
+                        ? mContext.getResources()
+                                .getDimensionPixelSize(
+                                        com.android.internal.R.dimen.navigation_bar_width)
+                        : 0;
 
         mDisplay.getRealMetrics(mDisplayMetrics);
-        float smallestWidth = (float)Math.min(mDisplayMetrics.widthPixels,
-                mDisplayMetrics.heightPixels);
+        float smallestWidth =
+                (float) Math.min(mDisplayMetrics.widthPixels, mDisplayMetrics.heightPixels);
         float smallestWidthDp = smallestWidth / (mDisplayMetrics.densityDpi / 160f);
 
         int rot = mDisplay.getRotation();
@@ -619,8 +639,12 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
         // The starting crop for the screenshot is the fullscreen without the status bar, which
         // is always on top. The conditional check will determine how to crop the navbar,
         // depending on orienation and screen size.
-        Rect crop = new Rect(0, statusBarHeight, mDisplayMetrics.widthPixels,
-                mDisplayMetrics.heightPixels);
+        Rect crop =
+                new Rect(
+                        0,
+                        statusBarHeight,
+                        mDisplayMetrics.widthPixels,
+                        mDisplayMetrics.heightPixels);
         if (mDisplayMetrics.widthPixels < mDisplayMetrics.heightPixels) {
             // Portrait mode: crop the navbar out from the bottom, width unchanged
             crop.bottom -= navBarHeight;
@@ -651,12 +675,13 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
     }
 
     @Override
-    public void onAnimationStart(Animator animation) {  }
+    public void onAnimationStart(Animator animation) {}
 
     @Override
     public void onAnimationEnd(Animator animation) {
-        if (animation == mScaleUpAnimator || animation == mSuccessAnimatorSet ||
-            animation == mFadeInAnimator) {
+        if (animation == mScaleUpAnimator
+                || animation == mSuccessAnimatorSet
+                || animation == mFadeInAnimator) {
             // These all indicate the end of the animation
             dismiss();
         } else if (animation == mFastSendAnimator) {
@@ -672,10 +697,10 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
     }
 
     @Override
-    public void onAnimationCancel(Animator animation) {  }
+    public void onAnimationCancel(Animator animation) {}
 
     @Override
-    public void onAnimationRepeat(Animator animation) {  }
+    public void onAnimationRepeat(Animator animation) {}
 
     @Override
     public void onTimeUpdate(TimeAnimator animation, long totalTime, long deltaTime) {
@@ -734,11 +759,11 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
     }
 
     @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surface) { }
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {}
 
     public void showSendHint() {
         if (mAlphaDownAnimator.isRunning()) {
-           mAlphaDownAnimator.cancel();
+            mAlphaDownAnimator.cancel();
         }
         if (mSlowSendAnimator.isRunning()) {
             mSlowSendAnimator.cancel();
@@ -751,8 +776,8 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
         mTextRetry.setText(mContext.getResources().getString(R.string.beam_try_again));
         mTextRetry.setVisibility(View.VISIBLE);
 
-        PropertyValuesHolder alphaUp = PropertyValuesHolder.ofFloat("alpha",
-                new float[] {mBlackLayer.getAlpha(), 0.9f});
+        PropertyValuesHolder alphaUp =
+                PropertyValuesHolder.ofFloat("alpha", new float[] {mBlackLayer.getAlpha(), 0.9f});
         mAlphaUpAnimator.setValues(alphaUp);
         mAlphaUpAnimator.start();
     }
@@ -763,8 +788,8 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             mCallback.onCanceled();
             return true;
-        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN ||
-                keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+                || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             // Treat as if it's a touch event
             return onTouch(mScreenshotView, null);
         } else {
@@ -823,30 +848,22 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
     }
 
     @Override
-    public void onWindowAttributesChanged(LayoutParams attrs) {
-    }
+    public void onWindowAttributesChanged(LayoutParams attrs) {}
 
     @Override
-    public void onContentChanged() {
-    }
+    public void onContentChanged() {}
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-    }
+    public void onWindowFocusChanged(boolean hasFocus) {}
 
     @Override
-    public void onAttachedToWindow() {
-
-    }
+    public void onAttachedToWindow() {}
 
     @Override
-    public void onDetachedFromWindow() {
-    }
+    public void onDetachedFromWindow() {}
 
     @Override
-    public void onPanelClosed(int featureId, Menu menu) {
-
-    }
+    public void onPanelClosed(int featureId, Menu menu) {}
 
     @Override
     public boolean onSearchRequested(SearchEvent searchEvent) {
@@ -859,8 +876,7 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
     }
 
     @Override
-    public ActionMode onWindowStartingActionMode(
-            android.view.ActionMode.Callback callback) {
+    public ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback callback) {
         return null;
     }
 
@@ -870,23 +886,22 @@ public class SendUi implements Animator.AnimatorListener, View.OnTouchListener,
     }
 
     @Override
-    public void onActionModeStarted(ActionMode mode) {
-    }
+    public void onActionModeStarted(ActionMode mode) {}
 
     @Override
-    public void onActionModeFinished(ActionMode mode) {
-    }
+    public void onActionModeFinished(ActionMode mode) {}
 
     public boolean isSendUiInIdleState() {
         return mState == STATE_IDLE;
     }
 
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (Intent.ACTION_CLOSE_SYSTEM_DIALOGS.equals(intent.getAction())) {
-                mCallback.onCanceled();
-            }
-        }
-    };
+    private final BroadcastReceiver mReceiver =
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (Intent.ACTION_CLOSE_SYSTEM_DIALOGS.equals(intent.getAction())) {
+                        mCallback.onCanceled();
+                    }
+                }
+            };
 }

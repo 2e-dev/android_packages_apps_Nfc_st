@@ -23,16 +23,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.nfc.NfcAdapter;
-import android.nfc.cardemulation.ApduServiceInfo;
 import android.nfc.cardemulation.CardEmulation;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
-
 import com.android.internal.R;
 import com.android.internal.app.AlertActivity;
 import com.android.internal.app.AlertController;
+import com.st.android.nfc_extensions.StApduServiceInfo;
 
 public class TapAgainDialog extends AlertActivity implements DialogInterface.OnClickListener {
     public static final String ACTION_CLOSE =
@@ -44,13 +43,14 @@ public class TapAgainDialog extends AlertActivity implements DialogInterface.OnC
     // Variables below only accessed on the main thread
     private CardEmulation mCardEmuManager;
     private boolean mClosedOnRequest = false;
-    final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            mClosedOnRequest = true;
-            finish();
-        }
-    };
+    final BroadcastReceiver mReceiver =
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    mClosedOnRequest = true;
+                    finish();
+                }
+            };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +62,7 @@ public class TapAgainDialog extends AlertActivity implements DialogInterface.OnC
         mCardEmuManager = CardEmulation.getInstance(adapter);
         Intent intent = getIntent();
         String category = intent.getStringExtra(EXTRA_CATEGORY);
-        ApduServiceInfo serviceInfo = intent.getParcelableExtra(EXTRA_APDU_SERVICE);
+        StApduServiceInfo serviceInfo = intent.getParcelableExtra(EXTRA_APDU_SERVICE);
         IntentFilter filter = new IntentFilter(ACTION_CLOSE);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         registerReceiver(mReceiver, filter);
@@ -73,7 +73,7 @@ public class TapAgainDialog extends AlertActivity implements DialogInterface.OnC
 
         PackageManager pm = getPackageManager();
         TextView tv = (TextView) ap.mView.findViewById(com.android.nfc.R.id.textview);
-        String description = serviceInfo.getDescription();
+        String description = serviceInfo.getGsmaDescription(pm);
         if (description == null) {
             CharSequence label = serviceInfo.loadLabel(pm);
             if (label == null) {
